@@ -1,0 +1,25 @@
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Node / editors
+node_modules/
+npm-debug.log*
+.vscode/
+.idea/
+
+# Never commit anyone's listening history
+Streaming_History*.json
+StreamingHistory*.json
+my_spotify_data*/
+*.zip
+
+# Local files
+*.log
+*.tmp
+
+# Secrets (only the empty example is safe to publish)
+.env
+.env.*
+!.env.example
