@@ -7,15 +7,36 @@
   <title>afterglow.</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <style>
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0a0910; color: #f6f1ec; font: 16px/1.5 system-ui, sans-serif; }
-    h1 { font: italic 400 56px/1 Georgia, serif; margin: 0 0 8px; }
-    p { color: #bdb3c4; margin: 0; }
+    body { margin: 0; min-height: 100vh; background: #0a0910; color: #f6f1ec; font: 15px/1.5 system-ui, sans-serif; }
+    main { max-width: 720px; margin: 64px auto; padding: 0 24px; }
+    h1 { font: italic 400 48px/1 Georgia, serif; margin: 0 0 8px; }
+    p { color: #bdb3c4; }
+    pre { background: #15121d; border-radius: 12px; padding: 16px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <main>
     <h1>afterglow.</h1>
-    <p>A little perspective on everything you listen to. Soon.</p>
+    <p>Pick your Spotify history JSON files. Nothing leaves this browser.</p>
+    <input type="file" id="files" accept=".json" multiple>
+    <pre id="out">Loading…</pre>
   </main>
+  <script type="module">
+    const worker = new Worker('js/worker.mjs', { type: 'module' });
+    const out = document.querySelector('#out');
+    const hours = ms => (ms / 3600000).toFixed(1);
+    const show = stats => {
+      if (!stats) { out.textContent = 'No library yet.'; return; }
+      out.textContent = `${stats.plays} plays · ${hours(stats.ms)} hours · ${stats.artistCount} artists\n\n` +
+        stats.artists.slice(0, 15).map((a, i) => `${String(i + 1).padStart(2)}. ${a.name} — ${hours(a.ms)} h`).join('\n');
+    };
+    worker.onmessage = ({ data }) => {
+      if (data.type === 'progress') out.textContent = data.message;
+      if (data.type === 'error') out.textContent = `Error: ${data.message}`;
+      if (['ready', 'imported'].includes(data.type)) show(data.stats);
+    };
+    worker.postMessage({ type: 'init', filters: {} });
+    document.querySelector('#files').addEventListener('change', event => worker.postMessage({ type: 'import', files: [...event.target.files], filters: {} }));
+  </script>
 </body>
 </html>
