@@ -26,15 +26,80 @@ async function storage(action, value) {
   } finally { db.close(); }
 }
 
+const MB = 1024 * 1024;
+const HISTORY_FILE = /(?:^|\/)(?:Streaming_History_Audio[^/]*|StreamingHistory[^/]*)\.json$/i;
+
+// Reads the ZIP's central directory. Spotify exports use stored or deflate entries, which is all this supports.
+export async function unzip(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const view = new DataView(bytes.buffer);
+  let end = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+    if (view.getUint32(i, true) === 0x06054b50 && i + 22 + view.getUint16(i + 20, true) === bytes.length) { end = i; break; }
+  }
+  if (end < 0) throw new Error('This ZIP could not be read. Extract it and choose the history JSON files instead.');
+  const count = view.getUint16(end + 10, true);
+  let offset = view.getUint32(end + 16, true), totalSize = 0;
+  if (count === 0xffff || offset === 0xffffffff) throw new Error('Extract this ZIP first, then select its history JSON files.');
+  const entries = [];
+  for (let i = 0; i < count; i++) {
+    if (offset + 46 > bytes.length || view.getUint32(offset, true) !== 0x02014b50) throw new Error('The ZIP directory is damaged. Extract the archive and import its JSON files.');
+    const flags = view.getUint16(offset + 8, true), method = view.getUint16(offset + 10, true);
+    const packedSize = view.getUint32(offset + 20, true), size = view.getUint32(offset + 24, true);
+    const nameLength = view.getUint16(offset + 28, true), extraLength = view.getUint16(offset + 30, true), commentLength = view.getUint16(offset + 32, true);
+    const localOffset = view.getUint32(offset + 42, true);
+    const name = new TextDecoder().decode(bytes.subarray(offset + 46, offset + 46 + nameLength));
+    offset += 46 + nameLength + extraLength + commentLength;
+    if (!HISTORY_FILE.test(name)) continue;
+    totalSize += size;
+    if (size > 300 * MB || totalSize > 800 * MB) throw new Error('This archive is too large to unpack in one go. Extract it and import the JSON files in smaller batches.');
+    if (flags & 1) throw new Error('Encrypted ZIPs aren’t supported. Extract the archive and import its JSON files.');
+    if (localOffset + 30 > bytes.length || view.getUint32(localOffset, true) !== 0x04034b50) throw new Error('The ZIP contains an unreadable file. Please extract it first.');
+    const start = localOffset + 30 + view.getUint16(localOffset + 26, true) + view.getUint16(localOffset + 28, true);
+    if (start + packedSize > bytes.length) throw new Error('The ZIP is incomplete. Download it again or import the extracted JSON files.');
+    entries.push({ name, method, size, data: bytes.subarray(start, start + packedSize) });
+  }
+  if (!entries.length) throw new Error('No Spotify listening history was found in this ZIP. Look for Streaming_History_Audio or StreamingHistory JSON files.');
+  return entries;
+}
+
+export async function entryText(entry) {
+  if (entry.method === 0) return new TextDecoder().decode(entry.data);
+  if (entry.method !== 8) throw new Error('This ZIP compression isn’t supported. Extract it and import the JSON files.');
+  let stream;
+  try { stream = new Blob([entry.data]).stream().pipeThrough(new DecompressionStream('deflate-raw')); }
+  catch { throw new Error('Your browser can’t unpack this ZIP. Extract it and choose the JSON files instead.'); }
+  const reader = stream.getReader(), chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > entry.size || size > 300 * MB) { await reader.cancel(); throw new Error('The ZIP has inconsistent file sizes. Extract it and import the JSON files.'); }
+    chunks.push(value);
+  }
+  if (size !== entry.size) throw new Error('The ZIP file is incomplete. Extract it and try the JSON files.');
+  return new Blob(chunks).text();
+}
+
 async function readFiles(list) {
   const incoming = [], added = [];
   let ignored = 0;
+  const add = (name, records) => {
+    const result = normalize(records);
+    for (const row of result.rows) incoming.push(row);
+    ignored += result.ignored; added.push(name.split('/').pop());
+  };
   for (const file of list) {
     post('progress', { message: `Reading ${file.name}…` });
-    if (!/\.json$/i.test(file.name)) throw new Error(`“${file.name}” isn’t a JSON file. Choose your Spotify history files.`);
-    const result = normalize(JSON.parse(await file.text()));
-    for (const row of result.rows) incoming.push(row);
-    ignored += result.ignored; added.push(file.name);
+    if (file.size > 500 * MB) throw new Error(`“${file.name}” is over 500 MB. Extract it and import the JSON files in batches.`);
+    if (/\.zip$/i.test(file.name)) {
+      for (const entry of await unzip(file)) {
+        post('progress', { message: `Reading ${entry.name.split('/').pop()}…` });
+        add(entry.name, JSON.parse(await entryText(entry)));
+      }
+    } else if (/\.json$/i.test(file.name)) add(file.name, JSON.parse(await file.text()));
+    else throw new Error(`“${file.name}” isn’t a JSON or ZIP file. Choose your Spotify history files.`);
   }
   return { incoming, added, ignored };
 }
