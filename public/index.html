@@ -3,40 +3,64 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0910">
   <meta name="color-scheme" content="dark">
-  <title>afterglow.</title>
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="A little perspective on everything you listen to. A private dashboard for your Spotify listening history.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>afterglow. — your listening, in perspective</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <style>
-    body { margin: 0; min-height: 100vh; background: #0a0910; color: #f6f1ec; font: 15px/1.5 system-ui, sans-serif; }
-    main { max-width: 720px; margin: 64px auto; padding: 0 24px; }
-    h1 { font: italic 400 48px/1 Georgia, serif; margin: 0 0 8px; }
-    p { color: #bdb3c4; }
-    pre { background: #15121d; border-radius: 12px; padding: 16px; white-space: pre-wrap; }
-  </style>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/dialogs.css">
 </head>
 <body>
-  <main>
-    <h1>afterglow.</h1>
-    <p>Pick your Spotify export (the ZIP or the history JSON files). Nothing leaves this browser.</p>
-    <input type="file" id="files" accept=".json,.zip,application/json,application/zip" multiple>
-    <pre id="out">Loading…</pre>
+  <header class="topbar">
+    <a class="brand" href="#/overview" aria-label="afterglow"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#/overview" data-view="overview"><span data-icon="overview"></span>Overview</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="btn btn-soft btn-sm import-trigger"><span data-icon="upload"></span>Import</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="page-head">
+      <div>
+        <span class="eyebrow" id="page-eyebrow">A soundtrack worth exploring</span>
+        <h1 id="page-title">Your music, <em>in perspective.</em></h1>
+        <p id="page-subtitle"></p>
+      </div>
+      <div class="page-filters">
+        <select class="select" id="year-filter" aria-label="Listening year"><option value="all">All time</option></select>
+      </div>
+    </section>
+    <div id="dashboard" aria-live="polite"></div>
+    <footer class="footer">
+      <span class="footer-brand">afterglow<b>.</b></span>
+      <span>A little perspective on everything you listen to.</span>
+      <span>Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
+    </footer>
   </main>
-  <script type="module">
-    const worker = new Worker('js/worker.mjs', { type: 'module' });
-    const out = document.querySelector('#out');
-    const hours = ms => (ms / 3600000).toFixed(1);
-    const show = stats => {
-      if (!stats) { out.textContent = 'No library yet.'; return; }
-      out.textContent = `${stats.plays} plays · ${hours(stats.ms)} hours · ${stats.artistCount} artists\n\n` +
-        stats.artists.slice(0, 15).map((a, i) => `${String(i + 1).padStart(2)}. ${a.name} — ${hours(a.ms)} h`).join('\n');
-    };
-    worker.onmessage = ({ data }) => {
-      if (data.type === 'progress') out.textContent = data.message;
-      if (data.type === 'error') out.textContent = `Error: ${data.message}`;
-      if (['ready', 'imported'].includes(data.type)) show(data.stats);
-    };
-    worker.postMessage({ type: 'init', filters: {} });
-    document.querySelector('#files').addEventListener('change', event => worker.postMessage({ type: 'import', files: [...event.target.files], filters: {} }));
-  </script>
+
+  <dialog id="import-dialog" class="dialog" closedby="any" aria-labelledby="import-title">
+    <header class="dialog-head"><span class="eyebrow">Bring your history</span><button class="icon-btn close-dialog" aria-label="Close"><span data-icon="close"></span></button></header>
+    <h2 class="dialog-title" id="import-title">Every listen <em>tells a story.</em></h2>
+    <p class="dialog-intro">Drop in your Spotify export: the ZIP itself, or the <code>Streaming_History</code> JSON files inside it.</p>
+    <label class="drop-zone" id="drop-zone" tabindex="0">
+      <span class="drop-icon" data-icon="upload"></span>
+      <strong>Drop your files here</strong>
+      <span>or <u>browse</u> · ZIP or JSON · all your years at once</span>
+      <input type="file" id="file-input" accept=".json,.zip,application/json,application/zip" multiple>
+    </label>
+    <div class="import-progress" id="import-progress" hidden><span class="spinner"></span><span id="progress-text">Reading…</span></div>
+    <p class="error" id="import-error" role="alert" hidden></p>
+    <p class="dialog-note"><span data-icon="shield"></span><span>Everything is processed on this device and saved in this browser only. Importing more files later adds to your library without double-counting.</span></p>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script type="module" src="js/main.mjs"></script>
 </body>
 </html>

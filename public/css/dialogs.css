@@ -1,0 +1,28 @@
+.dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 28px; border-radius: 26px; border: 1px solid var(--line-2); background: linear-gradient(180deg, #18141f, #110e17); color: var(--ink); box-shadow: 0 40px 120px -24px rgba(0, 0, 0, .85); }
+.dialog::backdrop { background: rgba(5, 4, 9, .68); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.dialog[open] { animation: pop .35s var(--ease); }
+@keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.985); } }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.dialog-head .icon-btn { margin: -8px -8px -8px 0; }
+.dialog-title { font: 400 34px/1.08 var(--serif); letter-spacing: -.015em; }
+.dialog-title em { background: var(--sunset); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .06em; }
+.dialog-intro { margin: 10px 0 22px; color: var(--ink-2); }
+.dialog-note { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--surface); color: var(--ink-2); font-size: 13px; }
+.dialog-note .i { color: var(--amber); margin-top: 1px; }
+
+/* Import */
+.drop-zone { position: relative; display: grid; justify-items: center; gap: 6px; padding: 36px 20px; border-radius: 20px; border: 1.5px dashed rgba(255, 180, 94, .32); background: radial-gradient(420px 160px at 50% 0%, rgba(255, 180, 94, .08), transparent 70%), rgba(255, 255, 255, .02); text-align: center; cursor: pointer; transition: border-color .2s, background-color .2s, transform .2s var(--ease); }
+.drop-zone:hover, .drop-zone.dragging { border-color: var(--amber); background-color: rgba(255, 180, 94, .06); }
+.drop-zone.dragging { transform: scale(1.01); }
+.drop-zone.busy { pointer-events: none; opacity: .55; }
+.drop-zone input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.drop-icon { width: 52px; height: 52px; margin-bottom: 6px; border-radius: 16px; background: var(--sunset); color: #1c0d14; box-shadow: 0 12px 30px -12px rgba(242, 85, 122, .8); }
+.drop-icon svg { width: 22px; height: 22px; }
+.drop-zone strong { font-size: 16px; }
+.drop-zone span { color: var(--ink-2); font-size: 13.5px; }
+.drop-zone u { color: var(--amber); text-underline-offset: 3px; }
+.import-progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: var(--ink-2); font-size: 13.5px; }
+.error { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(242, 85, 122, .1); border: 1px solid rgba(242, 85, 122, .28); color: #ffb3c3; font-size: 13.5px; }
+
+.toast { position: fixed; z-index: 80; left: 50%; bottom: 28px; max-width: min(560px, calc(100vw - 32px)); padding: 13px 18px; border-radius: 14px; background: #1d1826; border: 1px solid var(--line-2); box-shadow: 0 20px 50px -14px rgba(0, 0, 0, .8); font-size: 13.5px; transform: translateX(-50%); animation: toast .35s var(--ease); }
+@keyframes toast { from { opacity: 0; transform: translate(-50%, 10px); } }

@@ -1,0 +1,14 @@
+/* Stat tiles */
+.stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.stat { position: relative; overflow: hidden; min-width: 0; padding: 20px 20px 18px; border-radius: 18px; background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .018)); border: 1px solid var(--line); }
+.stat-label { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 12.5px; font-weight: 550; }
+.stat-label .i { width: 30px; height: 30px; border-radius: 10px; background: rgba(255, 180, 94, .11); color: var(--amber); }
+.stat:nth-child(2) .stat-label .i { background: rgba(255, 122, 92, .12); color: var(--coral); }
+.stat:nth-child(3) .stat-label .i { background: rgba(242, 85, 122, .12); color: var(--rose); }
+.stat:nth-child(4) .stat-label .i { background: rgba(139, 92, 246, .14); color: #a98bff; }
+.stat-label .i svg { width: 15px; height: 15px; }
+.stat-value { margin-top: 16px; font-size: 34px; font-weight: 650; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.stat-value small { margin-left: 5px; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--ink-3); }
+.stat-sub { margin-top: 10px; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
+
+@media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

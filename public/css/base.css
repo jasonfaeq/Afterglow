@@ -1,0 +1,99 @@
+:root {
+  --bg: #0a0910;
+  --bg-raise: #14111c;
+  --surface: rgba(255, 255, 255, .035);
+  --surface-2: rgba(255, 255, 255, .065);
+  --surface-3: rgba(255, 255, 255, .1);
+  --line: rgba(255, 255, 255, .075);
+  --line-2: rgba(255, 255, 255, .13);
+  --ink: #f6f1ec;
+  --ink-2: #bfb5c6;
+  --ink-3: #8a8094;
+  --amber: #ffb45e;
+  --coral: #ff7a5c;
+  --rose: #f2557a;
+  --violet: #8b5cf6;
+  --sky: #5aa9ff;
+  --sunset: linear-gradient(115deg, #ffc46b 0%, #ff7a5c 34%, #f2557a 66%, #8b5cf6 100%);
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans: Inter, 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif;
+  --radius: 22px;
+  --radius-sm: 14px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --shadow: 0 24px 60px -30px rgba(0, 0, 0, .75);
+  color-scheme: dark;
+  font: 15px/1.5 var(--sans);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scrollbar-color: rgba(255, 255, 255, .16) transparent; }
+body { margin: 0; min-height: 100dvh; overflow-x: hidden; background: var(--bg); }
+/* Warm ambient light, and a little film grain over everything. */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(900px 520px at 88% -10%, rgba(242, 85, 122, .15), transparent 62%),
+    radial-gradient(760px 460px at 6% -6%, rgba(255, 180, 94, .1), transparent 60%),
+    radial-gradient(1100px 620px at 50% 115%, rgba(139, 92, 246, .09), transparent 65%);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; text-align: inherit; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+em { font-style: italic; }
+strong, b { font-weight: 600; }
+code { font: 500 .9em ui-monospace, 'Cascadia Code', Consolas, monospace; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink); }
+[hidden] { display: none !important; }
+::selection { background: rgba(242, 85, 122, .35); }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 8px; }
+
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.eyebrow::before { content: ''; width: 18px; height: 1px; background: currentColor; opacity: .7; }
+.grad { background: var(--sunset); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* Icons are inline SVG strokes, sized by their wrapper. */
+.i { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.i svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap; transition: transform .2s var(--ease), background .2s, border-color .2s, box-shadow .2s, color .2s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: none; }
+.btn .i svg { width: 16px; height: 16px; }
+.btn-primary { color: #1c0d14; background: var(--sunset); box-shadow: 0 12px 30px -12px rgba(242, 85, 122, .8), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 16px 38px -12px rgba(255, 140, 90, .9), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.btn-ghost { border: 1px solid var(--line-2); background: rgba(255, 255, 255, .02); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface-2); border-color: rgba(255, 255, 255, .22); }
+.btn-soft { background: var(--surface-2); }
+.btn-soft:hover:not(:disabled) { background: var(--surface-3); }
+.btn-danger { background: rgba(242, 85, 122, .12); color: #ff9db2; border: 1px solid rgba(242, 85, 122, .32); }
+.btn-danger:hover:not(:disabled) { background: rgba(242, 85, 122, .2); }
+.btn-lg { height: 50px; padding: 0 26px; font-size: 15px; }
+.btn-sm { height: 34px; padding: 0 14px; font-size: 13px; }
+.icon-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; color: var(--ink-2); transition: background .2s, color .2s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+.link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13px; font-weight: 550; transition: color .2s; }
+.link:hover { color: var(--ink); }
+.link .i svg { width: 15px; height: 15px; }
+
+/* Form controls */
+.select { appearance: none; height: 38px; padding: 0 36px 0 16px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .03) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23bfb5c6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center / 12px; font-size: 13.5px; font-weight: 550; cursor: pointer; transition: border-color .2s, background-color .2s; }
+.select:hover { border-color: rgba(255, 255, 255, .22); background-color: var(--surface-2); }
+.select option { background: #17131f; color: var(--ink); }
+
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .15); border-top-color: var(--amber); animation: spin .8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
