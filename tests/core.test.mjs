@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, mergeRows, aggregate } from '../public/js/core.mjs';
+import { normalize, mergeRows, aggregate, demoRows } from '../public/js/core.mjs';
 
 const event = (overrides = {}) => ({
   ts: '2024-01-01T15:30:00Z', ms_played: 180000,
@@ -53,6 +53,15 @@ test('year filter, minimum duration, rankings, timeline gaps and heat bins agree
 test('the same title by different artists is ranked as two tracks', () => {
   const { rows } = normalize([event(), event({ master_metadata_album_artist_name: 'Another artist' })]);
   assert.equal(aggregate(rows).trackCount, 2);
+});
+
+test('the sample library is reproducible, ordered, and its totals balance', () => {
+  const rows = demoRows(), stats = aggregate(rows, { utc: true });
+  assert.deepEqual(rows[1000], demoRows()[1000]);
+  assert.ok(rows.every((row, i) => !i || rows[i - 1].ts <= row.ts));
+  assert.equal(stats.timeline.reduce((sum, month) => sum + month.ms, 0), stats.ms);
+  assert.equal(stats.artists.reduce((sum, artist) => sum + artist.plays, 0), stats.plays);
+  assert.ok(stats.artistCount > 10 && stats.albumCount > 10);
 });
 
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {

@@ -1,6 +1,7 @@
-import { normalize, mergeRows, aggregate } from './core.mjs';
+import { normalize, mergeRows, aggregate, demoRows } from './core.mjs';
 
-let rows = [], files = [];
+// Until something is imported, the dashboard runs on the fictional sample library.
+let rows = [], files = [], isDemo = true;
 const post = (type, payload = {}) => self.postMessage({ type, ...payload });
 
 // The whole normalized library lives in a single IndexedDB record.
@@ -109,20 +110,22 @@ async function handle(data) {
     if (data.type === 'init') {
       let saved;
       try { saved = await storage('get'); } catch { /* Private windows can block storage. */ }
-      if (saved?.rows?.length) { rows = saved.rows; files = saved.files ?? []; }
-      post('ready', { files, stats: rows.length ? aggregate(rows, data.filters) : null });
+      if (saved?.rows?.length) { rows = saved.rows; files = saved.files ?? []; isDemo = false; }
+      else rows = demoRows();
+      post('ready', { isDemo, files, stats: aggregate(rows, data.filters) });
     }
     if (data.type === 'query') post('stats', { id: data.id, stats: aggregate(rows, data.filters) });
     if (data.type === 'import') {
       const { incoming, added, ignored } = await readFiles(data.files);
       if (!incoming.length) throw new Error('No music listening events were found in those files.');
       post('progress', { message: 'Removing duplicates…' });
-      const merged = mergeRows(rows, incoming);
-      const nextFiles = [...new Set([...files, ...added])];
+      // The first real import replaces the sample library; later ones add to it.
+      const merged = mergeRows(isDemo ? [] : rows, incoming);
+      const nextFiles = [...new Set([...(isDemo ? [] : files), ...added])];
       let persisted = true;
       try { await storage('put', { rows: merged.rows, files: nextFiles }); } catch { persisted = false; }
-      rows = merged.rows; files = nextFiles;
-      post('imported', { files, persisted, duplicates: merged.duplicates, ignored, stats: aggregate(rows, data.filters) });
+      rows = merged.rows; files = nextFiles; isDemo = false;
+      post('imported', { isDemo, files, persisted, duplicates: merged.duplicates, ignored, stats: aggregate(rows, data.filters) });
     }
   } catch (error) {
     post('error', { message: error instanceof SyntaxError ? 'A file contains invalid JSON. Your library is unchanged.' : error.message });

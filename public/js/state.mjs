@@ -2,6 +2,7 @@
 export const state = {
   view: 'overview',
   stats: null,
+  isDemo: true,
   files: [],
   busy: false,
   filters: { year: 'all', minimum: 30000, utc: false }

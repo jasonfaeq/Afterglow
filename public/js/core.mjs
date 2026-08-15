@@ -107,3 +107,110 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     artists: rankedArtists, tracks: rank(tracks), albums: rank(albums), timeline, heat, excluded,
     topShare: ms ? (rankedArtists[0]?.ms ?? 0) / ms : 0 };
 }
+
+/* ---------- Sample library ---------- */
+// A made-up listener, so the dashboard has something to show before an import.
+// Every artist, album and track below is fictional. `joins` is the day (from Jan 1, 2024) they were first heard.
+export const DEMO_CATALOG = [
+  { artist: 'Velvet Harbour', weight: 10, joins: 0, albums: [['Low Tide Radio', ['Saltwater Static', 'Harbour Lights', 'Slow Fade', 'Ferry at Midnight', 'Undertow']], ['Shoreline Hymns', ['Gulls', 'Driftwood Choir', 'Last Ferry Home', 'Fog Bell']]] },
+  { artist: 'Neon Orchard', weight: 8, joins: 0, fade: 420, albums: [['Polaroid Summer', ['Peach Fuzz', 'Cherry Cola Sky', 'Backseat Constellations', 'Sunburn Season']], ['Fruit Machine', ['Jackpot Heart', 'Plum Wine', 'Tangerine Static']]] },
+  { artist: 'Mira Solano', weight: 6, joins: 0, albums: [['Glass Garden', ['Paper Moons', 'Ivy', 'Glasshouse', 'Bloom Slowly', 'Terrarium']]] },
+  { artist: 'The Lantern Club', weight: 5, joins: 0, night: true, albums: [['Small Hours', ['3 A.M. Diner', 'Streetlight Waltz', 'Night Bus', 'Lantern', 'Closing Time Again']]] },
+  { artist: 'Kite & Coral', weight: 5, joins: 0, summer: true, albums: [['Daylight Savings', ['Golden Hour', 'Sea Glass', 'Long Weekend', 'Weather Report']]] },
+  { artist: 'Static Bloom', weight: 4, joins: 0, fade: 300, albums: [['Overgrown', ['Moss', 'Wildflower Interference', 'Pollen Count', 'Greenhouse Effect']]] },
+  { artist: 'Juno Avery', weight: 9, joins: 130, albums: [['Soft Machinery', ['Clockwork Heart', 'Static Kiss', 'Velvet Gears', 'Pressure Points']], ['Second Light', ['Morning Person', 'Afterimage', 'Halflife', 'Lights On']]] },
+  { artist: 'Cassette Ghosts', weight: 3, joins: 200, albums: [['Rewind', ['Side B', 'Tape Hiss', 'Auto-Reverse', 'Play / Pause']]] },
+  { artist: 'Lumen Drive', weight: 6, joins: 300, peak: 560, albums: [['Night Swim', ['Chlorine', 'Underwater Lights', 'Deep End', 'Lifeguard Off Duty']]] },
+  { artist: 'Pale Signal', weight: 3, joins: 380, albums: [['Transmissions', ['Shortwave', 'Numbers Station', 'Static Prayer', 'Carrier Wave']]] },
+  { artist: 'Moth Parade', weight: 3, joins: 520, night: true, albums: [['Porchlight Dances', ['Lamplight', 'Wingbeat', 'Paper Lanterns', 'Gathering']]] },
+  { artist: 'Hollow Pines', weight: 5, joins: 640, winter: true, albums: [['Cabin Recordings', ['Woodsmoke', 'Kettle Song', 'Snowed In', 'Pine Needle Rain']]] },
+  { artist: 'Ada Monroe', weight: 9, joins: 745, albums: [['Northern Lights Motel', ['Room 12', 'Vacancy', 'Aurora', 'Ice Machine', 'Check-Out Time']]] },
+  { artist: 'Sunday Fever', weight: 3, joins: 820, weekend: true, albums: [['Lazy Hymns', ['Hammock', 'Iced Coffee', 'Slow Sunday', 'Porch Light']]] },
+  { artist: 'Tropic of Nowhere', weight: 3, joins: 870, albums: [['Postcards', ['Greetings From Nowhere', 'Palm Shadows', 'Souvenir', 'Duty Free']]] },
+  { artist: 'Wren & the Wildfires', weight: 7, joins: 930, albums: [['Smoke Signals', ['Ember Season', 'Kindling', 'Firebreak', 'Spark']]] }
+];
+
+const hashString = text => { let h = 2166136261; for (const char of text) { h ^= char.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const seeded = seed => () => {
+  seed = seed + 0x6d2b79f5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+};
+
+export function demoRows() {
+  const random = seeded(20240101), DAY = 86400000, first = Date.UTC(2024, 0, 1);
+  const weighted = (items, weights) => {
+    let r = random() * weights.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < items.length; i++) if ((r -= weights[i]) <= 0) return items[i];
+    return items.at(-1);
+  };
+  const hour = weekend => {
+    const r = random(), n = span => Math.floor(random() * span);
+    if (weekend) return r < .3 ? 10 + n(4) : r < .6 ? 14 + n(5) : r < .9 ? 19 + n(5) : n(3);
+    return r < .22 ? 7 + n(2) : r < .35 ? 12 + n(2) : r < .85 ? 17 + n(6) : r < .95 ? 23 : n(2);
+  };
+  const artists = DEMO_CATALOG.map(entry => ({ ...entry, tracks: entry.albums.flatMap(([album, names]) => names.map((name, i) => ({
+    name, album, artist: entry.artist, hit: 1 / (i + 1) ** .7, length: 150000 + hashString(entry.artist + name) % 180000, skip: hashString(name) % 100 / 1000
+  }))) }));
+  const rows = [];
+  let cursor = first;
+  for (let d = 0; d < 1004; d++) {
+    const date = new Date(first + d * DAY), weekday = date.getUTCDay(), weekend = weekday === 0 || weekday === 6;
+    const season = Math.sin(2 * Math.PI * ((date - Date.UTC(date.getUTCFullYear(), 0, 1)) / DAY - 80) / 365);
+    const summer = Math.max(0, season), winter = Math.max(0, -season), trip = d >= 587 && d <= 596;
+    let count = 18 * (1 + .15 * winter) * (weekend ? 1.25 : 1) * (.5 + random());
+    if (random() < .045 && !trip) continue;
+    if (random() < .03) count *= 2.1;
+    if (trip) count *= 1.3;
+    count = Math.round(count);
+    // New favourites get a honeymoon phase; some fade, one peaks, a couple are seasonal.
+    const interest = artists.map(a => {
+      if (d < a.joins) return 0;
+      let w = a.weight * (a.joins ? 1 + 1.4 * Math.exp(-(d - a.joins) / 50) : 1);
+      if (a.fade) w *= .25 + .75 * Math.exp(-d / a.fade);
+      if (a.peak) w *= .3 + 1.6 * Math.exp(-(((d - a.peak) / 110) ** 2));
+      if (a.summer) w *= .35 + 1.4 * summer;
+      if (a.winter) w *= .3 + 1.5 * winter;
+      if (a.weekend && weekend) w *= 2;
+      return w;
+    });
+    const sessions = Math.min(count, 1 + Math.floor(random() * (weekend ? 4 : 3)));
+    const starts = Array.from({ length: sessions }, () => hour(weekend)).sort((a, b) => a - b);
+    let remaining = count;
+    for (let s = 0; s < sessions && remaining > 0; s++) {
+      const size = s === sessions - 1 ? remaining : Math.max(1, Math.round(remaining / (sessions - s) * (.6 + random() * .8)));
+      remaining -= size;
+      cursor = Math.max(first + d * DAY + starts[s] * 3600000 + Math.floor(random() * 3600000), cursor + 40 * 60000);
+      const night = starts[s] >= 21 || starts[s] < 4;
+      const weights = artists.map((a, i) => interest[i] * (a.night && night ? 2.4 : 1));
+      const mode = random() < .35 ? 'album' : random() < .4 ? 'artist' : 'mix';
+      const shuffle = mode !== 'album' && random() < .75, offline = trip || random() < .03;
+      let artist = weighted(artists, weights), queue = [], position = 0, previous = null;
+      if (mode === 'album') {
+        const [album] = artist.albums[Math.floor(random() * artist.albums.length)];
+        queue = artist.tracks.filter(t => t.album === album);
+        if (random() < .3) position = Math.floor(random() * queue.length);
+      }
+      for (let p = 0; p < size; p++) {
+        let track;
+        if (previous && !previous.skipped && random() < .035) track = previous.track;
+        else if (position < queue.length) track = queue[position++];
+        else {
+          if (mode !== 'artist') artist = weighted(artists, weights);
+          track = weighted(artist.tracks, artist.tracks.map(t => t.hit));
+        }
+        const skipped = random() < .05 + track.skip + (shuffle ? .03 : 0);
+        let ms = track.length, reasonEnd = 'trackdone';
+        if (skipped) { ms = 1500 + Math.floor(random() * 26000); reasonEnd = 'fwdbtn'; }
+        else if ((p === size - 1 && random() < .35) || random() < .03) { ms = Math.floor(track.length * (.35 + random() * .55)); reasonEnd = 'endplay'; }
+        const reasonStart = !previous ? ['appload', 'clickrow', 'playbtn', 'clickrow'][Math.floor(random() * 4)] : previous.track === track ? 'backbtn' : previous.skipped ? 'fwdbtn' : 'trackdone';
+        cursor += ms;
+        rows.push({ ts: cursor, ms, track: track.name, artist: track.artist, album: track.album, uri: '', skipped, shuffle, offline, reasonStart, reasonEnd });
+        cursor += 400 + Math.floor(random() * 2500);
+        previous = { track, skipped };
+      }
+    }
+  }
+  return rows;
+}

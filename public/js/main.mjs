@@ -40,6 +40,7 @@ worker.onmessage = ({ data }) => {
   if (data.type === 'error') { setBusy(false); showError(data.message); return; }
   if (data.type === 'stats' && data.id !== queryId) return;
   if (data.files) state.files = data.files;
+  if ('isDemo' in data) { state.isDemo = data.isDemo; $('#demo-banner').hidden = !state.isDemo; }
   if (data.type === 'imported') {
     setBusy(false); $('#import-dialog').close();
     notify(`Your library is ready: ${plural(data.stats.plays, 'play')} from ${plural(data.files.length, 'file')}${data.duplicates ? `, ${number(data.duplicates)} duplicates skipped` : ''}.${data.persisted ? '' : ' Browser storage is unavailable, so this lasts for this visit only.'}`);
