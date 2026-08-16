@@ -159,7 +159,9 @@ export function demoRows() {
     const date = new Date(first + d * DAY), weekday = date.getUTCDay(), weekend = weekday === 0 || weekday === 6;
     const season = Math.sin(2 * Math.PI * ((date - Date.UTC(date.getUTCFullYear(), 0, 1)) / DAY - 80) / 365);
     const summer = Math.max(0, season), winter = Math.max(0, -season), trip = d >= 587 && d <= 596;
-    let count = 18 * (1 + .15 * winter) * (weekend ? 1.25 : 1) * (.5 + random());
+    // Slow swings over the months, so the timeline has busy stretches and quiet ones.
+    const mood = 1 + .32 * Math.sin(2 * Math.PI * d / 210) + .18 * Math.sin(2 * Math.PI * d / 97 + 1);
+    let count = 18 * mood * (1 + .15 * winter) * (weekend ? 1.25 : 1) * (.5 + random());
     if (random() < .045 && !trip) continue;
     if (random() < .03) count *= 2.1;
     if (trip) count *= 1.3;
@@ -212,5 +214,6 @@ export function demoRows() {
       }
     }
   }
-  return rows;
+  // Trim the edges so no time zone sees a stub month at either end.
+  return rows.filter(row => row.ts >= first + 12 * 3600000 && row.ts <= Date.UTC(2026, 8, 30, 10));
 }
