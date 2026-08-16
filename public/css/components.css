@@ -1,5 +1,29 @@
+/* Art tiles: covers for albums and tracks, round portraits for artists. */
+.art { --size: 44px; position: relative; display: inline-grid; place-items: center; flex-shrink: 0; width: var(--size); height: var(--size); overflow: hidden; border-radius: 8px; background: linear-gradient(135deg, var(--c1), var(--c2)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), 0 10px 22px -12px rgba(0, 0, 0, .9); isolation: isolate; }
+.art-artist { border-radius: 50%; }
+.art-initial { font: 400 calc(var(--size) * .46)/1 var(--serif); color: rgba(255, 255, 255, .94); text-shadow: 0 1px 10px rgba(0, 0, 0, .25); }
+.art-xs { --size: 34px; border-radius: 6px; }
+.art-sm { --size: 44px; }
+.art-md { --size: 60px; border-radius: 10px; }
+.art-lg { --size: 96px; border-radius: 12px; }
+.art-xl { --size: 152px; border-radius: 16px; }
+.art-artist.art-xs, .art-artist.art-md, .art-artist.art-lg, .art-artist.art-xl { border-radius: 50%; }
+
+/* The #1 artist, lit by its own colours. */
+.grid-hero { margin-top: 0; }
+.spotlight { position: relative; overflow: hidden; display: flex; align-items: center; gap: 30px; min-width: 0; padding: 30px; border-radius: var(--radius); border: 1px solid var(--line); background: #141019; isolation: isolate; box-shadow: var(--shadow); }
+.spotlight::before { content: ''; position: absolute; inset: -30%; z-index: -1; background: radial-gradient(closest-side at 22% 50%, var(--c1), transparent), radial-gradient(closest-side at 72% 64%, var(--c2), transparent); opacity: .3; filter: blur(40px); }
+.spotlight::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, transparent 30%, rgba(10, 9, 16, .55)); }
+.spotlight-body { display: grid; gap: 10px; min-width: 0; }
+.spotlight-name { font: 400 clamp(34px, 4vw, 50px)/1.02 var(--serif); letter-spacing: -.02em; overflow-wrap: anywhere; }
+.spotlight-stats { font-size: 15px; color: var(--ink-2); }
+.spotlight-stats strong { color: var(--ink); }
+.spotlight-meta { font-size: 13px; color: var(--ink-3); }
+.spotlight-meta strong { color: var(--ink-2); font-weight: 550; }
+
 /* Stat tiles */
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.grid-hero .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .stat { position: relative; overflow: hidden; min-width: 0; padding: 20px 20px 18px; border-radius: 18px; background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .018)); border: 1px solid var(--line); }
 .stat-label { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 12.5px; font-weight: 550; }
 .stat-label .i { width: 30px; height: 30px; border-radius: 10px; background: rgba(255, 180, 94, .11); color: var(--amber); }
@@ -7,10 +31,23 @@
 .stat:nth-child(3) .stat-label .i { background: rgba(242, 85, 122, .12); color: var(--rose); }
 .stat:nth-child(4) .stat-label .i { background: rgba(139, 92, 246, .14); color: #a98bff; }
 .stat-label .i svg { width: 15px; height: 15px; }
-.stat-value { margin-top: 16px; font-size: 34px; font-weight: 650; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.stat-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.stat-value { font-size: 34px; font-weight: 650; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
 .stat-value small { margin-left: 5px; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--ink-3); }
 .stat-sub { margin-top: 10px; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
-.stat-spark { position: absolute; top: 18px; right: 16px; width: 92px; height: 34px; color: var(--amber); opacity: .85; }
+.stat-spark { flex-shrink: 1; min-width: 0; width: 92px; height: 30px; color: var(--amber); opacity: .85; }
+
+/* Ranked lists */
+.rank-list { display: grid; gap: 2px; }
+.rank-row { display: grid; grid-template-columns: 24px auto minmax(0, 1fr) auto; align-items: center; gap: 14px; margin: 0 -10px; padding: 8px 10px; border-radius: 14px; transition: background .2s; }
+.rank-row:hover { background: var(--surface); }
+.rank-num { color: var(--ink-3); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.rank-main { display: grid; gap: 1px; min-width: 0; }
+.rank-title { overflow: hidden; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.rank-sub { overflow: hidden; color: var(--ink-3); font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }
+.rank-value { color: var(--ink-2); font-size: 13px; font-weight: 550; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar { display: block; height: 3px; margin-top: 7px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, .06); }
+.bar > span { display: block; height: 100%; border-radius: inherit; background: var(--sunset); }
 
 /* Small shared bits */
 .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
@@ -41,4 +78,12 @@
 .chart-foot { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 13px; }
 .chart-foot strong { color: var(--ink); font-weight: 600; }
 
-@media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) {
+  .grid-hero > * { grid-column: span 12; }
+  .grid-hero .stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .stat-grid, .grid-hero .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .spotlight { flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px; }
+  .spotlight .art-xl { --size: 112px; }
+}

@@ -1,8 +1,22 @@
-import { state } from '../state.mjs';
-import { number, decimal, percent, hours, duration, plural, DAY, monthLabel } from '../lib/format.mjs';
+import { state, periodLabel } from '../state.mjs';
+import { escape, number, decimal, percent, hours, duration, plural, DAY, monthLabel, formatDate } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, segmented } from '../ui/components.mjs';
+import { panel, segmented, art, artColors } from '../ui/components.mjs';
 import { chart, areaChart, sparkline } from '../ui/charts.mjs';
+
+function spotlight(stats) {
+  const top = stats.artists[0], track = stats.tracks.find(t => t.artist === top.name);
+  const [c1, c2] = artColors(top.name);
+  return `<section class="spotlight span-7" style="--c1:${c1};--c2:${c2}">
+    ${art('artist', top, 'xl')}
+    <div class="spotlight-body">
+      <span class="eyebrow">Your #1 artist · ${periodLabel()}</span>
+      <h2 class="spotlight-name">${escape(top.name)}</h2>
+      <p class="spotlight-stats"><strong>${duration(top.ms)}</strong> · ${plural(top.plays, 'play')} · ${percent(top.ms / stats.ms, 1)} of your listening</p>
+      <p class="spotlight-meta">${top.first ? `With you since ${formatDate(top.first, { month: 'long', year: 'numeric' })}` : ''}${track ? ` · Most played: <strong>${escape(track.name)}</strong>` : ''}</p>
+    </div>
+  </section>`;
+}
 
 function statTiles(stats) {
   const top10 = stats.artists.slice(0, 10).reduce((sum, a) => sum + a.ms, 0) / (stats.ms || 1);
@@ -12,9 +26,9 @@ function statTiles(stats) {
     ['artists', 'Artists', number(stats.artistCount), '', `Your top 10 make up ${percent(top10)} of your time`],
     ['music', 'Tracks', number(stats.trackCount), '', `${plural(stats.albumCount, 'album')} · ${decimal(stats.trackCount / (stats.artistCount || 1))} per artist`]
   ];
-  return `<section class="stat-grid" aria-label="Listening summary">${tiles.map(([name, label, value, unit, sub, spark = '']) => `<article class="stat">
-    <div class="stat-label">${icon(name)}${label}</div>${spark}
-    <div class="stat-value">${value}${unit ? `<small>${unit}</small>` : ''}</div>
+  return `<section class="stat-grid span-5" aria-label="Listening summary">${tiles.map(([name, label, value, unit, sub, spark = '']) => `<article class="stat">
+    <div class="stat-label">${icon(name)}${label}</div>
+    <div class="stat-row"><div class="stat-value">${value}${unit ? `<small>${unit}</small>` : ''}</div>${spark}</div>
     <p class="stat-sub">${sub}</p></article>`).join('')}</section>`;
 }
 
@@ -31,4 +45,22 @@ function timeline(stats) {
   return panel('Your listening story', 'Month by month, the music in your life.', body, { cls: 'span-12', action: segmented('Timeline metric', Object.entries(METRICS).map(([key, [name]]) => [key, name]), state.timelineMetric, 'data-metric') });
 }
 
-export const render = stats => `${statTiles(stats)}<div class="grid">${timeline(stats)}</div>`;
+function topArtists(stats) {
+  const max = stats.artists[0]?.ms || 1;
+  const rows = stats.artists.slice(0, 6).map((a, i) => `<li class="rank-row">
+    <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('artist', a)}
+    <div class="rank-main"><span class="rank-title">${escape(a.name)}</span><span class="rank-sub">${plural(a.plays, 'play')} · ${percent(a.ms / stats.ms, 1)} of your time</span><span class="bar"><span style="width:${a.ms / max * 100}%"></span></span></div>
+    <span class="rank-value">${duration(a.ms)}</span></li>`).join('');
+  return panel('Most-played artists', 'Ranked by listening time.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6' });
+}
+
+function topTracks(stats) {
+  const rows = stats.tracks.slice(0, 6).map((t, i) => `<li class="rank-row">
+    <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('track', t)}
+    <div class="rank-main"><span class="rank-title">${escape(t.name)}</span><span class="rank-sub">${escape(t.artist)} · ${plural(t.plays, 'play')}</span></div>
+    <span class="rank-value">${duration(t.ms)}</span></li>`).join('');
+  return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6' });
+}
+
+export const render = stats => `<div class="grid grid-hero">${spotlight(stats)}${statTiles(stats)}</div>
+  <div class="grid">${timeline(stats)}${topArtists(stats)}${topTracks(stats)}</div>`;
