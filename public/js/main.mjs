@@ -1,6 +1,8 @@
 import { state } from './state.mjs';
 import { $, $$, number, plural, formatDate, hours } from './lib/format.mjs';
 import { hydrateIcons } from './lib/icons.mjs';
+import { drawCharts } from './ui/charts.mjs';
+import { installTooltip } from './ui/tooltip.mjs';
 import * as overview from './views/overview.mjs';
 
 const VIEWS = { overview };
@@ -80,8 +82,9 @@ export function render({ animate = false } = {}) {
   if (!stats) dashboard.innerHTML = `<section class="panel empty"><span data-icon="headphones"></span><h2>Nothing playing yet.</h2><p>Import your Spotify export and your listening story shows up here. It never leaves this browser.</p><button class="btn btn-primary import-trigger"><span data-icon="upload"></span>Import your history</button></section>`;
   else if (!stats.plays) dashboard.innerHTML = `<section class="panel empty"><span data-icon="moon"></span><h2>A quiet moment in your history.</h2><p>No plays match these filters. Pick another year.</p></section>`;
   else dashboard.innerHTML = VIEWS[state.view].render(stats);
-  [...dashboard.children].forEach((el, i) => el.style.setProperty('--i', i));
+  [...dashboard.querySelectorAll(':scope > *, :scope > .grid > *')].forEach((el, i) => el.style.setProperty('--i', i));
   hydrateIcons(dashboard);
+  drawCharts(true);
 }
 
 function route() {
@@ -95,6 +98,7 @@ document.addEventListener('click', event => {
   if (!target) return;
   if (target.matches('.import-trigger')) { $('#import-error').hidden = true; showDialog('#import-dialog'); return; }
   if (target.matches('.close-dialog')) target.closest('dialog')?.close();
+  if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
 });
 window.addEventListener('hashchange', () => { route(); render({ animate: true }); window.scrollTo({ top: 0 }); });
 $('#year-filter').addEventListener('change', event => { state.filters.year = event.target.value; query(); });
@@ -126,5 +130,6 @@ window.addEventListener('drop', event => { if (hasFiles(event) && !event.target.
 
 route();
 hydrateIcons();
+installTooltip();
 $('#dashboard').innerHTML = '<div class="loading"><span class="spinner"></span>Finding your rhythm…</div>';
 worker.postMessage({ type: 'init', filters: state.filters });

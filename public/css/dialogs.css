@@ -24,5 +24,7 @@
 .import-progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: var(--ink-2); font-size: 13.5px; }
 .error { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(242, 85, 122, .1); border: 1px solid rgba(242, 85, 122, .28); color: #ffb3c3; font-size: 13.5px; }
 
+.tooltip { position: fixed; z-index: 90; max-width: 280px; padding: 9px 12px; border-radius: 11px; background: rgba(30, 25, 38, .97); border: 1px solid var(--line-2); box-shadow: 0 14px 34px -10px rgba(0, 0, 0, .8); color: var(--ink-2); font-size: 12.5px; line-height: 1.5; white-space: pre-line; pointer-events: none; }
+.tooltip::first-line { color: var(--ink); font-weight: 650; }
 .toast { position: fixed; z-index: 80; left: 50%; bottom: 28px; max-width: min(560px, calc(100vw - 32px)); padding: 13px 18px; border-radius: 14px; background: #1d1826; border: 1px solid var(--line-2); box-shadow: 0 20px 50px -14px rgba(0, 0, 0, .8); font-size: 13.5px; transform: translateX(-50%); animation: toast .35s var(--ease); }
 @keyframes toast { from { opacity: 0; transform: translate(-50%, 10px); } }
