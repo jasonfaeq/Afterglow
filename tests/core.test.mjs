@@ -64,6 +64,20 @@ test('the sample library is reproducible, ordered, and its totals balance', () =
   assert.ok(stats.artistCount > 10 && stats.albumCount > 10);
 });
 
+test('discoveries follow the year filter and the artist timeline adds up', () => {
+  const { rows } = normalize([
+    event({ ts: '2024-02-01T10:00:00Z' }), event({ ts: '2025-03-01T10:00:00Z' }),
+    event({ ts: '2025-03-02T10:00:00Z', master_metadata_album_artist_name: 'Newcomer' })
+  ]);
+  const y2025 = aggregate(rows, { year: '2025', utc: true });
+  assert.deepEqual(y2025.discoveries.items.map(a => a.name), ['Newcomer']);
+  assert.equal(y2025.artists.find(a => a.name === 'Artist').first, Date.parse('2024-02-01T10:00:00Z'));
+  const all = aggregate(rows, { utc: true });
+  assert.deepEqual(all.discoveries.items.map(a => a.name), ['Newcomer']);
+  const stacked = all.artistTimeline.series.reduce((sum, s) => sum + s.values.reduce((a, b) => a + b, 0), 0);
+  assert.equal(stacked, all.ms);
+});
+
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {
   const result = aggregate(normalize([event()]).rows, { year: '2000', utc: true });
   assert.equal(result.plays, 0); assert.equal(result.start, null); assert.equal(result.end, null);

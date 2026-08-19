@@ -51,7 +51,7 @@ function topArtists(stats) {
     <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('artist', a)}
     <div class="rank-main"><span class="rank-title">${escape(a.name)}</span><span class="rank-sub">${plural(a.plays, 'play')} · ${percent(a.ms / stats.ms, 1)} of your time</span><span class="bar"><span style="width:${a.ms / max * 100}%"></span></span></div>
     <span class="rank-value">${duration(a.ms)}</span></li>`).join('');
-  return panel('Most-played artists', 'Ranked by listening time.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6' });
+  return panel('Most-played artists', 'Ranked by listening time.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: '<a class="link" href="#/artists">All artists <span data-icon="arrow"></span></a>' });
 }
 
 function topTracks(stats) {

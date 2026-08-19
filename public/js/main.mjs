@@ -4,10 +4,12 @@ import { hydrateIcons } from './lib/icons.mjs';
 import { drawCharts } from './ui/charts.mjs';
 import { installTooltip } from './ui/tooltip.mjs';
 import * as overview from './views/overview.mjs';
+import * as artists from './views/artists.mjs';
 
-const VIEWS = { overview };
+const VIEWS = { overview, artists };
 const TITLES = {
-  overview: ['A soundtrack worth exploring', 'Your music, <em>in perspective.</em>', 'The songs you come back to. The artists that stay with you. It’s all here.']
+  overview: ['A soundtrack worth exploring', 'Your music, <em>in perspective.</em>', 'The songs you come back to. The artists that stay with you. It’s all here.'],
+  artists: ['The voices behind it all', 'The artists <em>that stay with you.</em>', 'Familiar favourites, new discoveries, and full-album moments.']
 };
 const worker = new Worker(new URL('./worker.mjs', import.meta.url), { type: 'module' });
 let queryId = 0, toastTimer, firstRender = true;

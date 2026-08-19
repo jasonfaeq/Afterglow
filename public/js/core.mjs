@@ -37,7 +37,9 @@ export function mergeRows(existing, incoming) {
   return { rows, duplicates };
 }
 
+const DAY = 86400000;
 const pad = n => String(n).padStart(2, '0');
+const bump = (map, key, by = 1) => map.set(key, (map.get(key) ?? 0) + by);
 const partsOf = utc => utc
   ? d => [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCDay(), d.getUTCHours()]
   : d => [d.getFullYear(), d.getMonth(), d.getDate(), d.getDay(), d.getHours()];
@@ -74,8 +76,8 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     days.add(`${monthKey}-${pad(dd)}`);
     ms += row.ms; plays++;
 
-    const artist = artists.get(row.artist) ?? artists.set(row.artist, { name: row.artist, ms: 0, plays: 0, last: 0, trackCount: 0 }).get(row.artist);
-    artist.ms += row.ms; artist.plays++; artist.last = Math.max(artist.last, row.ts);
+    const artist = artists.get(row.artist) ?? artists.set(row.artist, { name: row.artist, ms: 0, plays: 0, last: 0, trackCount: 0, monthly: new Map() }).get(row.artist);
+    artist.ms += row.ms; artist.plays++; artist.last = Math.max(artist.last, row.ts); bump(artist.monthly, monthKey, row.ms);
     const track = tracks.get(trackKey) ?? tracks.set(trackKey, { name: row.track, artist: row.artist, album: row.album, uri: row.uri, ms: 0, plays: 0, last: 0 }).get(trackKey);
     track.ms += row.ms; track.plays++; track.last = Math.max(track.last, row.ts);
     if (!track.uri && row.uri) track.uri = row.uri;
@@ -90,7 +92,8 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
   }
 
   const has = Number.isFinite(start), monthKeys = [...months.keys()].sort();
-  const timeline = (has ? monthRange(monthKeys[0], monthKeys.at(-1)) : []).map(key => {
+  const keys = has ? monthRange(monthKeys[0], monthKeys.at(-1)) : [];
+  const timeline = keys.map(key => {
     const m = months.get(key);
     return { key, ms: m?.ms ?? 0, plays: m?.plays ?? 0, artists: m?.artists.size ?? 0 };
   });
@@ -100,11 +103,20 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     if (artist) artist.trackCount++;
   }
   const rankedArtists = rank(artists);
-  for (const artist of rankedArtists) artist.first = firstArtist.get(artist.name);
+  const artistTimeline = { keys, series: rankedArtists.slice(0, 6).map(a => ({ name: a.name, values: keys.map(k => a.monthly.get(k) ?? 0) })) };
+  for (const artist of rankedArtists) {
+    artist.first = firstArtist.get(artist.name);
+    artist.months = artist.monthly.size;
+    delete artist.monthly;
+  }
+  // Discoveries: artists first heard in the selected year, or in the last 12 months of an all-time view.
+  const since = end - 365 * DAY;
+  const discoveries = rankedArtists.filter(a => year === 'all' ? a.first >= since : parts(new Date(a.first))[0] === Number(year)).slice(0, 10);
 
   return { ms, plays, artistCount: artists.size, trackCount: tracks.size, albumCount: albums.size, activeDays: days.size,
     start: has ? start : null, end: has ? end : null, years: [...years].sort((a, b) => b - a),
-    artists: rankedArtists, tracks: rank(tracks), albums: rank(albums), timeline, heat, excluded,
+    artists: rankedArtists, tracks: rank(tracks), albums: rank(albums), timeline, heat, excluded, artistTimeline,
+    discoveries: { label: year === 'all' ? 'First heard in your last 12 months' : `First heard in ${year}`, items: has ? discoveries : [] },
     topShare: ms ? (rankedArtists[0]?.ms ?? 0) / ms : 0 };
 }
 
@@ -139,7 +151,7 @@ const seeded = seed => () => {
 };
 
 export function demoRows() {
-  const random = seeded(20240101), DAY = 86400000, first = Date.UTC(2024, 0, 1);
+  const random = seeded(20240101), first = Date.UTC(2024, 0, 1);
   const weighted = (items, weights) => {
     let r = random() * weights.reduce((a, b) => a + b, 0);
     for (let i = 0; i < items.length; i++) if ((r -= weights[i]) <= 0) return items[i];

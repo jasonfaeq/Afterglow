@@ -1,4 +1,6 @@
-import { escape, niceMax, axisNumber } from '../lib/format.mjs';
+import { escape, niceMax, axisNumber, hours, percent } from '../lib/format.mjs';
+
+export const SERIES = ['#ffb45e', '#ff7a5c', '#f2557a', '#c04fd6', '#8b5cf6', '#5aa9ff'];
 
 /* Charts are drawn at their real pixel width so text stays crisp. `chart()` leaves a slot; drawCharts() fills it. */
 const charts = new Map();
@@ -71,6 +73,41 @@ export function areaChart(w, { values, label, tip, height = 250, format = axisNu
     ${values.map((v, i) => i % every === 0 ? `<text x="${x(i)}" y="${H - 9}" text-anchor="middle">${escape(label(i))}</text>` : '').join('')}
     ${values.map((v, i) => `<g class="pt" tabindex="0" data-tip="${escape(tip(i))}"><rect class="hit" x="${x(i) - slot / 2}" y="${top}" width="${slot}" height="${H - top - bottom}"/><line class="guide" x1="${x(i)}" x2="${x(i)}" y1="${top}" y2="${H - bottom}"/><circle class="dot" cx="${points[i][0]}" cy="${points[i][1]}" r="5"/></g>`).join('')}
   </svg>`;
+}
+
+// Monthly hours for a handful of series, stacked. `tip(i)` describes one month.
+export function stackChart(w, { keys, series, label, tip, aria = 'Stacked chart' }) {
+  const H = w < 520 ? 220 : 280, left = 44, right = 12, top = 16, bottom = 30, n = keys.length;
+  const totals = keys.map((_, i) => series.reduce((sum, s) => sum + s.values[i], 0));
+  const max = niceMax(Math.max(...totals.map(hours), 0));
+  const x = i => n === 1 ? (left + w - right) / 2 : left + i / (n - 1) * (w - left - right);
+  const y = ms => H - bottom - hours(ms) / max * (H - top - bottom);
+  const base = Array(n).fill(0);
+  const layers = series.map((s, si) => {
+    const lower = base.map((b, i) => [x(i), y(b)]);
+    s.values.forEach((v, i) => { base[i] += v; });
+    const upper = base.map((b, i) => [x(i), y(b)]);
+    return `<path class="layer" d="${smoothPath(upper)} ${smoothPath(lower.reverse(), false)} Z" fill="${SERIES[si]}"/>`;
+  });
+  const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((w - left - right) / 64))));
+  const slot = n > 1 ? (w - left - right) / (n - 1) : w - left - right;
+  return `<svg class="chart" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" role="img" aria-label="${escape(aria)}">
+    ${gridLines({ w, H, left, right, top, bottom, max, format: axisNumber })}<g class="layers">${layers.join('')}</g>
+    ${keys.map((key, i) => i % every === 0 ? `<text x="${x(i)}" y="${H - 9}" text-anchor="middle">${escape(label(i))}</text>` : '').join('')}
+    ${keys.map((key, i) => `<g class="pt" tabindex="0" data-tip="${escape(tip(i))}"><rect class="hit" x="${x(i) - slot / 2}" y="${top}" width="${slot}" height="${H - top - bottom}"/><line class="guide" x1="${x(i)}" x2="${x(i)}" y1="${top}" y2="${H - bottom}"/><circle class="dot" cx="${x(i)}" cy="${y(totals[i])}" r="4"/></g>`).join('')}
+  </svg>`;
+}
+
+export function donut(segments, size = 184, thickness = 22) {
+  const r = (size - thickness) / 2, C = 2 * Math.PI * r, total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
+  let offset = 0;
+  return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Share of listening time">
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="track" stroke-width="${thickness}" fill="none"/>
+    ${segments.map(s => {
+      const length = s.value / total * C, gap = length > 4 ? 2.5 : 0;
+      const arc = `<circle tabindex="0" data-tip="${escape(`${s.label}\n${percent(s.value / total, 1)} of your time`)}" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${thickness}" stroke-dasharray="${Math.max(0, length - gap)} ${C - length + gap}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${size / 2} ${size / 2})"/>`;
+      offset += length; return arc;
+    }).join('')}</svg>`;
 }
 
 export function sparkline(values) {
