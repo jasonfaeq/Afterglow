@@ -104,6 +104,29 @@
 .album-card p { overflow: hidden; color: var(--ink-2); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .album-hours { color: var(--ink-3); font-size: 12.5px; }
 
+/* Tracks table */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.search { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 240px; max-width: 440px; height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .03); color: var(--ink-3); transition: border-color .2s, background .2s; }
+.search:focus-within { border-color: rgba(255, 180, 94, .55); background: var(--surface-2); }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font-size: 14px; }
+.search input::placeholder { color: var(--ink-3); }
+.table-wrap { margin: 0 -24px; padding: 0 24px; overflow-x: auto; }
+.track-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.track-table th { padding: 0 12px 12px; border-bottom: 1px solid var(--line); color: var(--ink-3); font-size: 11px; font-weight: 650; letter-spacing: .1em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.track-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255, 255, 255, .04); }
+.track-table tbody tr { transition: background .15s; }
+.track-table tbody tr:hover { background: var(--surface); }
+.track-table .num { color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.track-table .rank { width: 44px; color: var(--ink-3); }
+.track-cell { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.track-text { display: grid; min-width: 0; }
+.track-title { max-width: 380px; overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.track-artist { color: var(--ink-3); font-size: 12.5px; }
+.col-album { color: var(--ink-2); }
+.clip { display: block; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; color: var(--ink-3); font-size: 13px; }
+.pager > div { display: flex; gap: 8px; }
+
 /* Small shared bits */
 .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 .segmented button { height: 30px; padding: 0 13px; border-radius: 999px; font-size: 12.5px; font-weight: 550; color: var(--ink-3); transition: color .2s, background .2s; }
@@ -144,6 +167,8 @@
   .podium { grid-template-columns: 1fr; }
   .podium-card { order: 0; }
   .rank-list.two-col { columns: 1; }
+  .col-album, .col-first { display: none; }
+  .track-title { max-width: 200px; }
   .spotlight { flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px; }
   .spotlight .art-xl { --size: 112px; }
 }

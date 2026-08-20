@@ -5,11 +5,13 @@ import { drawCharts } from './ui/charts.mjs';
 import { installTooltip } from './ui/tooltip.mjs';
 import * as overview from './views/overview.mjs';
 import * as artists from './views/artists.mjs';
+import * as tracks from './views/tracks.mjs';
 
-const VIEWS = { overview, artists };
+const VIEWS = { overview, artists, tracks };
 const TITLES = {
   overview: ['A soundtrack worth exploring', 'Your music, <em>in perspective.</em>', 'The songs you come back to. The artists that stay with you. It’s all here.'],
-  artists: ['The voices behind it all', 'The artists <em>that stay with you.</em>', 'Familiar favourites, new discoveries, and full-album moments.']
+  artists: ['The voices behind it all', 'The artists <em>that stay with you.</em>', 'Familiar favourites, new discoveries, and full-album moments.'],
+  tracks: ['Song by song', 'Some songs <em>just stick.</em>', 'Every track in your history. Search, sort, and find the ones you never skip.']
 };
 const worker = new Worker(new URL('./worker.mjs', import.meta.url), { type: 'module' });
 let queryId = 0, toastTimer, firstRender = true;
@@ -83,7 +85,7 @@ export function render({ animate = false } = {}) {
   dashboard.classList.toggle('reveal', animate);
   if (!stats) dashboard.innerHTML = `<section class="panel empty"><span data-icon="headphones"></span><h2>Nothing playing yet.</h2><p>Import your Spotify export and your listening story shows up here. It never leaves this browser.</p><button class="btn btn-primary import-trigger"><span data-icon="upload"></span>Import your history</button></section>`;
   else if (!stats.plays) dashboard.innerHTML = `<section class="panel empty"><span data-icon="moon"></span><h2>A quiet moment in your history.</h2><p>No plays match these filters. Pick another year.</p></section>`;
-  else dashboard.innerHTML = VIEWS[state.view].render(stats);
+  else { dashboard.innerHTML = VIEWS[state.view].render(stats); VIEWS[state.view].after?.(stats); }
   [...dashboard.querySelectorAll(':scope > *, :scope > .grid > *')].forEach((el, i) => el.style.setProperty('--i', i));
   hydrateIcons(dashboard);
   drawCharts(true);
@@ -101,6 +103,17 @@ document.addEventListener('click', event => {
   if (target.matches('.import-trigger')) { $('#import-error').hidden = true; showDialog('#import-dialog'); return; }
   if (target.matches('.close-dialog')) target.closest('dialog')?.close();
   if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
+  if (target.dataset.sort) { state.tracks.sort = target.dataset.sort; state.tracks.page = 0; render(); }
+  if (target.id === 'prev-page' || target.id === 'next-page') {
+    state.tracks.page += target.id === 'next-page' ? 1 : -1;
+    tracks.update(state.stats);
+    $('.tracks-panel').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+});
+document.addEventListener('input', event => {
+  if (event.target.id !== 'track-search') return;
+  state.tracks.search = event.target.value; state.tracks.page = 0;
+  tracks.update(state.stats);
 });
 window.addEventListener('hashchange', () => { route(); render({ animate: true }); window.scrollTo({ top: 0 }); });
 $('#year-filter').addEventListener('change', event => { state.filters.year = event.target.value; query(); });

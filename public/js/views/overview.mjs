@@ -59,7 +59,7 @@ function topTracks(stats) {
     <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('track', t)}
     <div class="rank-main"><span class="rank-title">${escape(t.name)}</span><span class="rank-sub">${escape(t.artist)} · ${plural(t.plays, 'play')}</span></div>
     <span class="rank-value">${duration(t.ms)}</span></li>`).join('');
-  return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6' });
+  return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: '<a class="link" href="#/tracks">All tracks <span data-icon="arrow"></span></a>' });
 }
 
 export const render = stats => `<div class="grid grid-hero">${spotlight(stats)}${statTiles(stats)}</div>

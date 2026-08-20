@@ -6,7 +6,8 @@ export const state = {
   files: [],
   busy: false,
   filters: { year: 'all', minimum: 30000, utc: false },
-  timelineMetric: 'ms'
+  timelineMetric: 'ms',
+  tracks: { search: '', sort: 'ms', page: 0 }
 };
 
 export const periodLabel = () => state.filters.year === 'all' ? 'all time' : String(state.filters.year);
