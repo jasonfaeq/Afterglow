@@ -7,6 +7,7 @@ export const state = {
   busy: false,
   filters: { year: 'all', minimum: 30000, utc: false },
   timelineMetric: 'ms',
+  calendarYear: null,
   tracks: { search: '', sort: 'ms', page: 0 }
 };
 

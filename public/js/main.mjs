@@ -6,12 +6,14 @@ import { installTooltip } from './ui/tooltip.mjs';
 import * as overview from './views/overview.mjs';
 import * as artists from './views/artists.mjs';
 import * as tracks from './views/tracks.mjs';
+import * as habits from './views/habits.mjs';
 
-const VIEWS = { overview, artists, tracks };
+const VIEWS = { overview, artists, tracks, habits };
 const TITLES = {
   overview: ['A soundtrack worth exploring', 'Your music, <em>in perspective.</em>', 'The songs you come back to. The artists that stay with you. It’s all here.'],
   artists: ['The voices behind it all', 'The artists <em>that stay with you.</em>', 'Familiar favourites, new discoveries, and full-album moments.'],
-  tracks: ['Song by song', 'Some songs <em>just stick.</em>', 'Every track in your history. Search, sort, and find the ones you never skip.']
+  tracks: ['Song by song', 'Some songs <em>just stick.</em>', 'Every track in your history. Search, sort, and find the ones you never skip.'],
+  habits: ['When the music plays', 'There’s a rhythm <em>to your days.</em>', 'Early starts, late nights, streaks and sessions.']
 };
 const worker = new Worker(new URL('./worker.mjs', import.meta.url), { type: 'module' });
 let queryId = 0, toastTimer, firstRender = true;
@@ -104,6 +106,7 @@ document.addEventListener('click', event => {
   if (target.matches('.close-dialog')) target.closest('dialog')?.close();
   if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
   if (target.dataset.sort) { state.tracks.sort = target.dataset.sort; state.tracks.page = 0; render(); }
+  if (target.dataset.calYear) { state.calendarYear = Number(target.dataset.calYear); render(); }
   if (target.id === 'prev-page' || target.id === 'next-page') {
     state.tracks.page += target.id === 'next-page' ? 1 : -1;
     tracks.update(state.stats);

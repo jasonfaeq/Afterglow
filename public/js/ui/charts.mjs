@@ -1,6 +1,8 @@
-import { escape, niceMax, axisNumber, hours, percent } from '../lib/format.mjs';
+import { escape, niceMax, axisNumber, hours, percent, duration, plural, dayLabel, hourLabel, DAY, DAY_NAMES } from '../lib/format.mjs';
 
 export const SERIES = ['#ffb45e', '#ff7a5c', '#f2557a', '#c04fd6', '#8b5cf6', '#5aa9ff'];
+export const HEAT = ['rgba(255, 255, 255, .05)', '#3b2349', '#6b2a60', '#a8396a', '#e75d5c', '#ffb45e'];
+export const heatLevel = (value, cap) => value ? Math.min(5, Math.max(1, Math.ceil(value / cap * 5))) : 0;
 
 /* Charts are drawn at their real pixel width so text stays crisp. `chart()` leaves a slot; drawCharts() fills it. */
 const charts = new Map();
@@ -108,6 +110,42 @@ export function donut(segments, size = 184, thickness = 22) {
       const arc = `<circle tabindex="0" data-tip="${escape(`${s.label}\n${percent(s.value / total, 1)} of your time`)}" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${thickness}" stroke-dasharray="${Math.max(0, length - gap)} ${C - length + gap}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${size / 2} ${size / 2})"/>`;
       offset += length; return arc;
     }).join('')}</svg>`;
+}
+
+// A year of days, one square each, like a contribution graph.
+export function calendarChart(w, daily, year) {
+  const days = new Map(daily.map(([key, ms, plays]) => [key, [ms, plays]]));
+  const from = Date.UTC(year, 0, 1) / DAY, to = Date.UTC(year, 11, 31) / DAY;
+  const offset = new Date(from * DAY).getUTCDay(), gridStart = from - offset, weeks = Math.ceil((to - gridStart + 1) / 7);
+  const left = 32, top = 22, gap = 3, cell = Math.max(9, Math.min(18, Math.floor((w - left) / weeks) - gap));
+  const width = left + weeks * (cell + gap), height = top + 7 * (cell + gap);
+  const values = [...days].filter(([key]) => key.startsWith(`${year}-`)).map(([, v]) => v[0]).sort((a, b) => a - b);
+  const cap = values[Math.floor(values.length * .95)] || 1;
+  let rects = '', months = '';
+  for (let d = from; d <= to; d++) {
+    const key = new Date(d * DAY).toISOString().slice(0, 10), week = Math.floor((d - gridStart) / 7), row = (d - gridStart) % 7, [ms, plays] = days.get(key) ?? [0, 0];
+    rects += `<rect class="day" x="${left + week * (cell + gap)}" y="${top + row * (cell + gap)}" width="${cell}" height="${cell}" rx="3.5" fill="${HEAT[heatLevel(ms, cap)]}" data-tip="${escape(`${dayLabel(key)}\n${ms ? `${duration(ms)} · ${plural(plays, 'play')}` : 'No listening'}`)}"/>`;
+    if (key.endsWith('-01')) months += `<text x="${left + week * (cell + gap)}" y="13">${dayLabel(key, { month: 'short' })}</text>`;
+  }
+  const labels = [1, 3, 5].map(i => `<text x="0" y="${top + i * (cell + gap) + cell - 2}">${DAY_NAMES[i].slice(0, 3)}</text>`).join('');
+  return `<div class="calendar-scroll"><svg class="chart calendar" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily listening calendar for ${year}">${months}${labels}${rects}</svg></div>`;
+}
+
+// 24 wedges around a clock face, coloured by time of day.
+export function clockChart(w, values) {
+  const size = Math.min(w, 320), c = size / 2, inner = size * .2, outer = size * .4, max = Math.max(...values, 1);
+  const p = (r, a) => `${(c + r * Math.cos(a)).toFixed(1)},${(c + r * Math.sin(a)).toFixed(1)}`;
+  const color = h => h < 5 ? '#8b5cf6' : h < 12 ? '#ffb45e' : h < 17 ? '#ff7a5c' : h < 22 ? '#f2557a' : '#b04fd6';
+  const peak = values.indexOf(Math.max(...values));
+  const wedges = values.map((v, h) => {
+    const a0 = h / 24 * Math.PI * 2 - Math.PI / 2 + .028, a1 = (h + 1) / 24 * Math.PI * 2 - Math.PI / 2 - .028, r = inner + 3 + (outer - inner - 3) * v / max;
+    return `<path class="wedge${h === peak ? ' peak' : ''}" tabindex="0" data-tip="${hourLabel(h)}–${hourLabel((h + 1) % 24)}\n${duration(v)}" d="M${p(inner, a0)} L${p(r, a0)} A${r},${r} 0 0 1 ${p(r, a1)} L${p(inner, a1)} A${inner},${inner} 0 0 0 ${p(inner, a0)} Z" fill="${color(h)}"/>`;
+  }).join('');
+  const labels = [0, 3, 6, 9, 12, 15, 18, 21].map(h => { const a = h / 24 * Math.PI * 2 - Math.PI / 2; return `<text x="${c + (outer + 17) * Math.cos(a)}" y="${c + (outer + 17) * Math.sin(a) + 4}" text-anchor="middle">${hourLabel(h)}</text>`; }).join('');
+  return `<svg class="chart clock" width="${w}" height="${size}" viewBox="${(size - w) / 2} 0 ${w} ${size}" role="img" aria-label="Listening by hour of day, peaking at ${hourLabel(peak)}">
+    <circle cx="${c}" cy="${c}" r="${outer}" class="ring"/><circle cx="${c}" cy="${c}" r="${(inner + outer) / 2}" class="ring"/>${wedges}${labels}
+    <text x="${c}" y="${c - 2}" text-anchor="middle" class="clock-value">${hourLabel(peak)}</text><text x="${c}" y="${c + 16}" text-anchor="middle">peak hour</text>
+  </svg>`;
 }
 
 export function sparkline(values) {
