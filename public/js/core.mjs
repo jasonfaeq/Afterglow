@@ -37,8 +37,10 @@ export function mergeRows(existing, incoming) {
   return { rows, duplicates };
 }
 
-const DAY = 86400000;
+const DAY = 86400000, SESSION_GAP = 20 * 60000;
 const pad = n => String(n).padStart(2, '0');
+const dayNumber = key => Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10)) / DAY;
+const topOf = map => { let best = null, value = -1; for (const [key, v] of map) if (v > value) { best = key; value = v; } return best === null ? null : [best, value]; };
 const bump = (map, key, by = 1) => map.set(key, (map.get(key) ?? 0) + by);
 const partsOf = utc => utc
   ? d => [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCDay(), d.getUTCHours()]
@@ -55,10 +57,17 @@ function monthRange(firstKey, lastKey) {
 // One pass over the history feeds every chart. Rankings use listening time, not play counts.
 export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } = {}) {
   const parts = partsOf(utc), years = new Set();
-  const artists = new Map(), tracks = new Map(), albums = new Map(), months = new Map(), days = new Set();
+  const artists = new Map(), tracks = new Map(), albums = new Map(), months = new Map(), daily = new Map();
   const firstArtist = new Map(), firstTrack = new Map();
   const heat = Array.from({ length: 7 }, () => Array(24).fill(0));
-  let ms = 0, plays = 0, start = Infinity, end = -Infinity, excluded = 0;
+  let ms = 0, plays = 0, start = Infinity, end = -Infinity, excluded = 0, firstPlay = null;
+  let session = null, sessionCount = 0, sessionMs = 0, longestSession = null, lastTs = null;
+  let runKey = null, runCount = 0, bestRun = null;
+  const closeSession = () => {
+    if (!session) return;
+    sessionCount++; sessionMs += session.ms;
+    if (!longestSession || session.ms > longestSession.ms) longestSession = session;
+  };
 
   for (const row of rows) {
     const [y, mo, dd, wd, h] = parts(new Date(row.ts));
@@ -71,9 +80,11 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     }
     if (year !== 'all' && y !== Number(year)) continue;
     if (!counted) { excluded++; continue; }
-    const monthKey = `${y}-${pad(mo + 1)}`;
-    start = Math.min(start, row.ts); end = Math.max(end, row.ts);
-    days.add(`${monthKey}-${pad(dd)}`);
+    const monthKey = `${y}-${pad(mo + 1)}`, dayKey = `${monthKey}-${pad(dd)}`;
+    if (row.ts < start) { start = row.ts; firstPlay = { name: row.track, artist: row.artist, album: row.album, ts: row.ts }; }
+    end = Math.max(end, row.ts);
+    const day = daily.get(dayKey) ?? daily.set(dayKey, { ms: 0, plays: 0, ts: row.ts }).get(dayKey);
+    day.ms += row.ms; day.plays++;
     ms += row.ms; plays++;
 
     const artist = artists.get(row.artist) ?? artists.set(row.artist, { name: row.artist, ms: 0, plays: 0, last: 0, trackCount: 0, monthly: new Map() }).get(row.artist);
@@ -89,7 +100,18 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     const month = months.get(monthKey) ?? months.set(monthKey, { ms: 0, plays: 0, artists: new Set() }).get(monthKey);
     month.ms += row.ms; month.plays++; month.artists.add(row.artist);
     heat[wd][h] += row.ms;
+
+    // Sessions: plays separated by less than SESSION_GAP of silence.
+    const began = row.ts - row.ms;
+    if (session && began - lastTs > SESSION_GAP) { closeSession(); session = null; }
+    if (!session) session = { start: began, end: row.ts, ms: 0, plays: 0 };
+    session.ms += row.ms; session.plays++; session.end = row.ts; lastTs = row.ts;
+
+    // The same track, back to back.
+    if (trackKey === runKey) runCount++; else { runKey = trackKey; runCount = 1; }
+    if (runCount > 1 && (!bestRun || runCount > bestRun.count)) bestRun = { count: runCount, name: row.track, artist: row.artist, album: row.album, ts: row.ts };
   }
+  closeSession();
 
   const has = Number.isFinite(start), monthKeys = [...months.keys()].sort();
   const keys = has ? monthRange(monthKeys[0], monthKeys.at(-1)) : [];
@@ -113,9 +135,38 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
   const since = end - 365 * DAY;
   const discoveries = rankedArtists.filter(a => year === 'all' ? a.first >= since : parts(new Date(a.first))[0] === Number(year)).slice(0, 10);
 
-  return { ms, plays, artistCount: artists.size, trackCount: tracks.size, albumCount: albums.size, activeDays: days.size,
+  // Streaks and the biggest day.
+  const dailyList = [...daily].sort((a, b) => a[0] < b[0] ? -1 : 1);
+  let longest = null, run = null;
+  for (const [key] of dailyList) {
+    const n = dayNumber(key);
+    if (run && n === run.n + 1) { run.days++; run.to = key; run.n = n; }
+    else run = { days: 1, from: key, to: key, n };
+    if (!longest || run.days > longest.days) longest = { ...run };
+  }
+  let biggestDay = null;
+  for (const [key, value] of dailyList) if (!biggestDay || value.ms > biggestDay.ms) biggestDay = { key, ms: value.ms, plays: value.plays, ts: value.ts };
+  if (biggestDay) {
+    const dayTracks = new Map(), dayArtists = new Map();
+    for (const row of rows) {
+      if (Math.abs(row.ts - biggestDay.ts) > 2 * DAY || row.ms < minimum) continue;
+      const [y, mo, dd] = parts(new Date(row.ts));
+      if (`${y}-${pad(mo + 1)}-${pad(dd)}` !== biggestDay.key) continue;
+      bump(dayTracks, `${row.artist}\u0000${row.track}`, row.ms); bump(dayArtists, row.artist, row.ms);
+    }
+    const topTrack = topOf(dayTracks), topArtist = topOf(dayArtists);
+    if (topTrack) { const [artist, name] = topTrack[0].split('\u0000'); biggestDay.track = { name, artist }; }
+    if (topArtist) biggestDay.artist = topArtist[0];
+  }
+
+  return { ms, plays, artistCount: artists.size, trackCount: tracks.size, albumCount: albums.size, activeDays: daily.size,
     start: has ? start : null, end: has ? end : null, years: [...years].sort((a, b) => b - a),
     artists: rankedArtists, tracks: rank(tracks), albums: rank(albums), timeline, heat, excluded, artistTimeline,
+    daily: dailyList.map(([key, value]) => [key, value.ms, value.plays]),
+    streak: longest ? { days: longest.days, from: longest.from, to: longest.to } : null,
+    latestStreak: run ? { days: run.days, from: run.from, to: run.to } : null,
+    biggestDay, firstPlay, repeat: bestRun,
+    sessions: { count: sessionCount, avgMs: sessionCount ? sessionMs / sessionCount : 0, longest: longestSession },
     discoveries: { label: year === 'all' ? 'First heard in your last 12 months' : `First heard in ${year}`, items: has ? discoveries : [] },
     topShare: ms ? (rankedArtists[0]?.ms ?? 0) / ms : 0 };
 }

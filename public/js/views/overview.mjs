@@ -1,7 +1,7 @@
 import { state, periodLabel } from '../state.mjs';
-import { escape, number, decimal, percent, hours, duration, plural, DAY, monthLabel, formatDate } from '../lib/format.mjs';
+import { escape, number, decimal, percent, hours, duration, clockDuration, plural, DAY, monthLabel, formatDate, dayLabel } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, segmented, art, artColors } from '../ui/components.mjs';
+import { panel, segmented, art, artColors, dayparts } from '../ui/components.mjs';
 import { chart, areaChart, sparkline } from '../ui/charts.mjs';
 
 function spotlight(stats) {
@@ -62,5 +62,24 @@ function topTracks(stats) {
   return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: '<a class="link" href="#/tracks">All tracks <span data-icon="arrow"></span></a>' });
 }
 
+function records(stats) {
+  const tiles = [], short = { month: 'short', day: 'numeric', year: 'numeric' };
+  const b = stats.biggestDay;
+  if (b) tiles.push(['flame', 'Biggest day', duration(b.ms), `${dayLabel(b.key)} · ${plural(b.plays, 'play')}${b.artist ? `, mostly ${escape(b.artist)}` : ''}`]);
+  if (stats.streak) tiles.push(['calendar', 'Longest streak', plural(stats.streak.days, 'day'), stats.streak.days > 1 ? `${dayLabel(stats.streak.from, short)} → ${dayLabel(stats.streak.to, short)}` : 'Listen two days in a row to start one']);
+  const session = stats.sessions.longest;
+  if (session) tiles.push(['headphones', 'Longest session', clockDuration(session.ms), `${plural(session.plays, 'track')} on ${formatDate(session.start)}`]);
+  if (stats.repeat) tiles.push(['repeat', 'On repeat', `${stats.repeat.count}× in a row`, `${escape(stats.repeat.name)} · ${escape(stats.repeat.artist)}`]);
+  const loyal = [...stats.artists].sort((a, b) => b.months - a.months || b.ms - a.ms)[0];
+  if (loyal && stats.timeline.length > 1) tiles.push(['heart', 'Most loyal', escape(loyal.name), `Played in ${loyal.months} of ${plural(stats.timeline.length, 'month')}`]);
+  const span = Math.max(1, Math.round((stats.end - stats.start) / DAY) + 1);
+  tiles.push(['clock', 'A typical day', duration(stats.ms / (stats.activeDays || 1)), `You listened on ${percent(Math.min(1, stats.activeDays / span))} of the days in this period`]);
+  const top = dayparts(stats).reduce((a, b) => b.ms > a.ms ? b : a);
+  tiles.push([top.icon, 'Listening persona', top.persona, `${percent(top.ms / (stats.ms || 1))} of your time is in the ${top.label.toLowerCase()}, ${top.range}`]);
+  if (stats.firstPlay) tiles.push(['flag', state.filters.year === 'all' ? 'Where it began' : `First play of ${state.filters.year}`, escape(stats.firstPlay.name), `${escape(stats.firstPlay.artist)} · ${formatDate(stats.firstPlay.ts)}`]);
+  return panel('Records & moments', `The standout days, streaks and habits of ${periodLabel()}.`, `<div class="records">${tiles.map(([name, label, value, sub]) => `<article class="record">
+    ${icon(name)}<span class="record-label">${label}</span><strong class="record-value" title="${value}">${value}</strong><span class="record-sub">${sub}</span></article>`).join('')}</div>`, { cls: 'span-12' });
+}
+
 export const render = stats => `<div class="grid grid-hero">${spotlight(stats)}${statTiles(stats)}</div>
-  <div class="grid">${timeline(stats)}${topArtists(stats)}${topTracks(stats)}</div>`;
+  <div class="grid">${timeline(stats)}${topArtists(stats)}${topTracks(stats)}${records(stats)}</div>`;

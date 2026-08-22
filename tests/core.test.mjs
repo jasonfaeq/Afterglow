@@ -78,6 +78,23 @@ test('discoveries follow the year filter and the artist timeline adds up', () =>
   assert.equal(stacked, all.ms);
 });
 
+test('streaks, sessions, repeats and the biggest day are derived consistently', () => {
+  const { rows } = normalize([
+    event({ ts: '2024-01-01T10:03:00Z' }), event({ ts: '2024-01-01T10:06:00Z' }), event({ ts: '2024-01-01T10:09:00Z' }),
+    event({ ts: '2024-01-02T10:00:00Z', master_metadata_track_name: 'Two' }), event({ ts: '2024-01-03T10:00:00Z', master_metadata_track_name: 'Two' }),
+    event({ ts: '2024-01-05T10:00:00Z', master_metadata_track_name: 'Two', master_metadata_album_artist_name: 'New' }),
+    event({ ts: '2024-01-05T10:01:00Z', ms_played: 5000 }), event({ ts: '2025-02-01T10:00:00Z' })
+  ]);
+  const stats = aggregate(mergeRows([], rows).rows, { utc: true });
+  assert.deepEqual(stats.streak, { days: 3, from: '2024-01-01', to: '2024-01-03' });
+  assert.equal(stats.latestStreak.days, 1);
+  assert.equal(stats.biggestDay.key, '2024-01-01'); assert.equal(stats.biggestDay.track.name, 'One');
+  assert.equal(stats.repeat.count, 3); assert.equal(stats.repeat.name, 'One');
+  assert.equal(stats.sessions.count, 5); assert.equal(stats.sessions.longest.plays, 3);
+  assert.equal(stats.firstPlay.ts, Date.parse('2024-01-01T10:03:00Z'));
+  assert.equal(stats.daily.reduce((sum, day) => sum + day[1], 0), stats.ms);
+});
+
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {
   const result = aggregate(normalize([event()]).rows, { year: '2000', utc: true });
   assert.equal(result.plays, 0); assert.equal(result.start, null); assert.equal(result.end, null);
