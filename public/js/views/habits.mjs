@@ -25,7 +25,7 @@ function clock(stats) {
 
 function week(stats) {
   const totals = stats.heat.map(day => day.reduce((a, b) => a + b, 0)), max = Math.max(...totals, 1), peak = totals.indexOf(Math.max(...totals));
-  const weekend = (totals[0] + totals[6]) / 2, weekday = totals.slice(1, 6).reduce((a, b) => a + b, 0) / 5, ratio = weekday ? weekend / weekday : 0;
+  const weekend = (totals[5] + totals[6]) / 2, weekday = totals.slice(0, 5).reduce((a, b) => a + b, 0) / 5, ratio = weekday ? weekend / weekday : 0;
   const bars = totals.map((ms, d) => `<div class="week-bar${d === peak ? ' peak' : ''}" tabindex="0" data-tip="${DAY_NAMES[d]}s\n${duration(ms)}"><span class="week-fill" style="height:${Math.max(2, ms / max * 100)}%"></span><span class="week-label">${DAY_NAMES[d].slice(0, 3)}</span></div>`).join('');
   const verdict = ratio > 1.1 ? `Weekends are ${percent(ratio - 1)} louder than weekdays.` : ratio < .9 ? `Weekdays carry the soundtrack; weekends are ${percent(1 - ratio)} quieter.` : 'Weekdays and weekends sound about the same.';
   return panel('The shape of your week', 'Total listening time on each day of the week.', `<div class="week-bars">${bars}</div>${insight('calendar', `<strong>${DAY_NAMES[peak]}</strong> is your biggest day. ${verdict}`)}`, { cls: 'span-6' });

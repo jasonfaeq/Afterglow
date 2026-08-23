@@ -116,7 +116,7 @@ export function donut(segments, size = 184, thickness = 22) {
 export function calendarChart(w, daily, year) {
   const days = new Map(daily.map(([key, ms, plays]) => [key, [ms, plays]]));
   const from = Date.UTC(year, 0, 1) / DAY, to = Date.UTC(year, 11, 31) / DAY;
-  const offset = new Date(from * DAY).getUTCDay(), gridStart = from - offset, weeks = Math.ceil((to - gridStart + 1) / 7);
+  const offset = (new Date(from * DAY).getUTCDay() + 6) % 7, gridStart = from - offset, weeks = Math.ceil((to - gridStart + 1) / 7);
   const left = 32, top = 22, gap = 3, cell = Math.max(9, Math.min(18, Math.floor((w - left) / weeks) - gap));
   const width = left + weeks * (cell + gap), height = top + 7 * (cell + gap);
   const values = [...days].filter(([key]) => key.startsWith(`${year}-`)).map(([, v]) => v[0]).sort((a, b) => a - b);
@@ -127,7 +127,7 @@ export function calendarChart(w, daily, year) {
     rects += `<rect class="day" x="${left + week * (cell + gap)}" y="${top + row * (cell + gap)}" width="${cell}" height="${cell}" rx="3.5" fill="${HEAT[heatLevel(ms, cap)]}" data-tip="${escape(`${dayLabel(key)}\n${ms ? `${duration(ms)} · ${plural(plays, 'play')}` : 'No listening'}`)}"/>`;
     if (key.endsWith('-01')) months += `<text x="${left + week * (cell + gap)}" y="13">${dayLabel(key, { month: 'short' })}</text>`;
   }
-  const labels = [1, 3, 5].map(i => `<text x="0" y="${top + i * (cell + gap) + cell - 2}">${DAY_NAMES[i].slice(0, 3)}</text>`).join('');
+  const labels = [0, 2, 4].map(i => `<text x="0" y="${top + i * (cell + gap) + cell - 2}">${DAY_NAMES[i].slice(0, 3)}</text>`).join('');
   return `<div class="calendar-scroll"><svg class="chart calendar" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily listening calendar for ${year}">${months}${labels}${rects}</svg></div>`;
 }
 

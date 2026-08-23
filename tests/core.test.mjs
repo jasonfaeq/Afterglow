@@ -42,8 +42,8 @@ test('year filter, minimum duration, rankings, timeline gaps and heat bins agree
   assert.equal(stats.plays, 2); assert.equal(stats.ms, 240000); assert.equal(stats.excluded, 1);
   assert.equal(stats.artistCount, 2); assert.equal(stats.trackCount, 2); assert.equal(stats.albumCount, 2);
   assert.deepEqual(stats.timeline.map(x => x.ms), [180000, 0, 60000]);
-  // Both plays are on a Monday.
-  assert.equal(stats.heat[1][15], 180000); assert.equal(stats.heat[1][21], 60000);
+  // Both plays are on a Monday, the first row.
+  assert.equal(stats.heat[0][15], 180000); assert.equal(stats.heat[0][21], 60000);
   assert.equal(stats.heat.flat().reduce((a, b) => a + b, 0), stats.ms);
   assert.equal(stats.artists[0].name, 'Artist'); assert.equal(stats.topShare, .75);
   assert.deepEqual(stats.years, [2025, 2024]);

@@ -99,7 +99,7 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     }
     const month = months.get(monthKey) ?? months.set(monthKey, { ms: 0, plays: 0, artists: new Set() }).get(monthKey);
     month.ms += row.ms; month.plays++; month.artists.add(row.artist);
-    heat[wd][h] += row.ms;
+    heat[(wd + 6) % 7][h] += row.ms; // Monday first
 
     // Sessions: plays separated by less than SESSION_GAP of silence.
     const began = row.ts - row.ms;

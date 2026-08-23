@@ -29,7 +29,7 @@ export const formatDate = (ts, options = { month: 'short', day: 'numeric', year:
 export const dayLabel = (key, options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) => new Date(`${key}T12:00:00Z`).toLocaleDateString('en', { ...options, timeZone: 'UTC' });
 export const monthLabel = (key, long = false) => new Date(`${key}-01T12:00:00Z`).toLocaleDateString('en', { month: long ? 'long' : 'short', year: long ? 'numeric' : '2-digit', timeZone: 'UTC' });
 export const hourLabel = hour => `${hour % 12 || 12}${hour >= 12 ? 'pm' : 'am'}`;
-export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 // Round chart maximums up to friendly numbers (1, 2, 2.5, 5, 10 × 10ⁿ per tick).
 export function niceMax(value, ticks = 4) {
