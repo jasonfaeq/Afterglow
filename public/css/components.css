@@ -156,6 +156,29 @@
 .mini-stats strong { display: block; font-size: 24px; font-weight: 650; letter-spacing: -.02em; }
 .mini-stats span { color: var(--ink-3); font-size: 12.5px; }
 
+.gauges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.gauge { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.ring-gauge { flex-shrink: 0; }
+.ring-gauge .track { stroke: rgba(255, 255, 255, .06); }
+.gauge strong { display: block; font-size: 22px; font-weight: 650; letter-spacing: -.02em; }
+.gauge span { display: block; font-size: 13px; font-weight: 550; }
+.gauge small { color: var(--ink-3); font-size: 12px; }
+.behaviour-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; margin-top: 26px; }
+.behaviour-grid h3 { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; font-size: 13.5px; font-weight: 620; }
+.behaviour-grid h3 small { color: var(--ink-3); font-size: 11.5px; font-weight: 500; }
+.hbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; margin-bottom: 12px; font-size: 12.5px; }
+.hbar-label { overflow: hidden; color: var(--ink-2); text-overflow: ellipsis; white-space: nowrap; }
+.hbar em { color: var(--ink-3); font-style: normal; font-variant-numeric: tabular-nums; }
+.hbar-track { grid-column: 1 / -1; height: 5px; overflow: hidden; border-radius: 5px; background: rgba(255, 255, 255, .06); }
+.hbar-track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--coral), var(--rose)); }
+.mini-tracks { display: grid; gap: 10px; }
+.mini-tracks li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.mini-tracks div { display: grid; min-width: 0; }
+.mini-tracks strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.mini-tracks span { overflow: hidden; color: var(--ink-3); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.mini-tracks em { color: var(--ink-2); font-size: 12px; font-style: normal; white-space: nowrap; }
+.mini-tracks .empty-mini { display: block; padding: 8px 0; text-align: left; }
+
 /* Tracks table */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 .search { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 240px; max-width: 440px; height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .03); color: var(--ink-3); transition: border-color .2s, background .2s; }
@@ -213,7 +236,7 @@
   .grid-hero .stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .donut-wrap { flex-direction: column; align-items: stretch; }
   .donut-holder { align-self: center; }
-  .records { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .records, .gauges, .behaviour-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   .stat-grid, .grid-hero .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -1,8 +1,15 @@
 import { state } from '../state.mjs';
-import { number, decimal, percent, duration, clockDuration, plural, formatDate, dayLabel, hourLabel, DAY_NAMES } from '../lib/format.mjs';
+import { escape, number, decimal, percent, duration, clockDuration, plural, formatDate, dayLabel, hourLabel, DAY_NAMES } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, insight, segmented, hourTotals, dayparts } from '../ui/components.mjs';
-import { chart, calendarChart, clockChart, HEAT, heatLevel } from '../ui/charts.mjs';
+import { panel, insight, segmented, hourTotals, dayparts, art } from '../ui/components.mjs';
+import { chart, calendarChart, clockChart, ring, HEAT, heatLevel } from '../ui/charts.mjs';
+
+const REASONS = {
+  trackdone: 'Previous track ended', clickrow: 'You picked it', playbtn: 'Pressed play', fwdbtn: 'Skipped forward', backbtn: 'Went back', appload: 'App opened',
+  remote: 'Another device', trackerror: 'Playback error', endplay: 'Playback stopped', logout: 'Logged out', clickside: 'Picked from the sidebar',
+  uriopen: 'Opened a link', popup: 'Popup', persisted: 'Resumed', 'unexpected-exit': 'App closed', 'unexpected-exit-while-paused': 'App closed while paused', unknown: 'Unknown'
+};
+const reasonLabel = key => REASONS[key] ?? key.replace(/[-_]+/g, ' ').replace(/^./, c => c.toUpperCase());
 
 const short = { month: 'short', day: 'numeric', year: 'numeric' };
 const legend = `<div class="heat-legend"><small>Less</small>${HEAT.map(color => `<i style="background:${color}"></i>`).join('')}<small>More</small></div>`;
@@ -47,4 +54,30 @@ function sessions(stats) {
     ${s.longest ? insight('headphones', `Your longest session started on ${formatDate(s.longest.start, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}: <strong>${plural(s.longest.plays, 'track')}</strong> back to back.`) : ''}`, { cls: 'span-5' });
 }
 
-export const render = stats => `<div class="grid">${calendar(stats)}${clock(stats)}${week(stats)}${heatmap(stats)}${sessions(stats)}</div>`;
+function behaviour(stats) {
+  const b = stats.behaviour;
+  if (!b.known && !b.shuffleKnown) return panel('Skips, shuffle &amp; offline', '', `<div class="empty-mini"><p><strong>This export doesn’t include playback details.</strong></p>
+    <p>Spotify’s <em>Extended streaming history</em> records skips, shuffle and how each play started and ended. Import those files and your existing plays are filled in without double counting.</p>
+    <button class="btn btn-soft import-trigger">Import extended history</button></div>`, { cls: 'span-12' });
+  const rate = (n, d) => d ? n / d : 0;
+  const gauges = [
+    ['Skip rate', rate(b.skips, b.known), `${number(b.skips)} of ${number(b.known)} plays`, '#f2557a'],
+    ['On shuffle', rate(b.shuffles, b.shuffleKnown), `${number(b.shuffles)} plays`, '#ffb45e'],
+    ['Offline', rate(b.offline, b.offlineKnown), `${number(b.offline)} plays`, '#8b5cf6'],
+    ['Under 30 seconds', rate(b.short, b.events), `${number(b.short)} short plays`, '#5aa9ff']
+  ];
+  const bars = list => {
+    const max = list[0]?.count || 1, total = list.reduce((s, x) => s + x.count, 0) || 1;
+    return list.slice(0, 5).map(x => `<div class="hbar" data-tip="${escape(`${reasonLabel(x.reason)}\n${plural(x.count, 'play')}`)}"><span class="hbar-label">${escape(reasonLabel(x.reason))}</span><span class="hbar-track"><span style="width:${x.count / max * 100}%"></span></span><em>${percent(x.count / total)}</em></div>`).join('') || '<p class="empty-mini">No data</p>';
+  };
+  const list = (items, skip) => items.length ? items.map(t => `<li>${art('track', t, 'xs')}<div><strong title="${escape(t.name)}">${escape(t.name)}</strong><span>${escape(t.artist)}</span></div><em>${skip ? `${percent(t.skips / t.plays)} skipped` : plural(t.plays, 'play')}</em></li>`).join('') : '<li class="empty-mini">Not enough plays yet.</li>';
+  return `<section class="panel span-12"><header class="panel-head"><div><h2>Skips, shuffle &amp; offline</h2><p>How you actually press play. This includes short plays, since most skips happen in the first few seconds.</p></div></header>
+    <div class="gauges">${gauges.map(([label, value, sub, color]) => `<div class="gauge">${ring(value, color)}<div><strong>${percent(value)}</strong><span>${label}</span><small>${sub}</small></div></div>`).join('')}</div>
+    <div class="behaviour-grid">
+      <div><h3>How plays start</h3>${bars(b.starts)}</div><div><h3>How plays end</h3>${bars(b.ends)}</div>
+      <div><h3>Most skipped <small>5+ plays</small></h3><ul class="mini-tracks">${list(b.mostSkipped, true)}</ul></div>
+      <div><h3>Never skipped <small>5+ plays</small></h3><ul class="mini-tracks">${list(b.neverSkipped, false)}</ul></div>
+    </div></section>`;
+}
+
+export const render = stats => `<div class="grid">${calendar(stats)}${clock(stats)}${week(stats)}${heatmap(stats)}${sessions(stats)}${behaviour(stats)}</div>`;

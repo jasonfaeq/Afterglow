@@ -9,14 +9,22 @@ const event = (overrides = {}) => ({
   ...overrides
 });
 
-test('extended export keeps music metadata and drops account and device fields', () => {
+test('extended export keeps music metadata and behaviour, and drops account and device fields', () => {
   const { rows, ignored } = normalize([
-    event({ ip_addr: 'private', conn_country: 'DE', platform: 'android', username: 'someone' }),
+    event({ ip_addr: 'private', conn_country: 'DE', platform: 'android', username: 'someone', skipped: true, shuffle: false, offline: null, reason_start: 'clickrow', reason_end: 'fwdbtn' }),
     event({ master_metadata_track_name: null, episode_name: 'A podcast' }), null, event({ ms_played: -1 }), event({ ts: 'invalid' })
   ]);
   assert.equal(rows.length, 1); assert.equal(ignored, 4);
-  assert.deepEqual(Object.keys(rows[0]).sort(), ['album', 'artist', 'ms', 'track', 'ts', 'uri']);
+  assert.deepEqual(Object.keys(rows[0]).sort(), ['album', 'artist', 'ms', 'reasonEnd', 'reasonStart', 'shuffle', 'skipped', 'track', 'ts', 'uri']);
+  assert.deepEqual(Object.keys(normalize([event({ reason_end: '<script>' })]).rows[0]).sort(), ['album', 'artist', 'ms', 'track', 'ts', 'uri']);
   assert.equal(normalize([event({ spotify_track_uri: 'javascript:alert(1)' })]).rows[0].uri, '');
+});
+
+test('re-importing the extended export fills in behaviour without duplicating plays', () => {
+  const old = normalize([event()]).rows;
+  const merged = mergeRows(old, normalize([event({ skipped: true, shuffle: true, reason_end: 'fwdbtn' })]).rows);
+  assert.equal(merged.rows.length, 1); assert.equal(merged.duplicates, 1); assert.equal(merged.enriched, 1);
+  assert.equal(merged.rows[0].skipped, true); assert.equal(merged.rows[0].reasonEnd, 'fwdbtn');
 });
 
 test('account data export parses endTime as UTC and handles missing albums', () => {
@@ -62,6 +70,7 @@ test('the sample library is reproducible, ordered, and its totals balance', () =
   assert.equal(stats.timeline.reduce((sum, month) => sum + month.ms, 0), stats.ms);
   assert.equal(stats.artists.reduce((sum, artist) => sum + artist.plays, 0), stats.plays);
   assert.ok(stats.artistCount > 10 && stats.albumCount > 10);
+  assert.ok(stats.behaviour.known > 0 && stats.behaviour.neverSkipped.length > 0 && stats.discoveries.items.length > 0);
 });
 
 test('discoveries follow the year filter and the artist timeline adds up', () => {
@@ -83,7 +92,7 @@ test('streaks, sessions, repeats and the biggest day are derived consistently', 
     event({ ts: '2024-01-01T10:03:00Z' }), event({ ts: '2024-01-01T10:06:00Z' }), event({ ts: '2024-01-01T10:09:00Z' }),
     event({ ts: '2024-01-02T10:00:00Z', master_metadata_track_name: 'Two' }), event({ ts: '2024-01-03T10:00:00Z', master_metadata_track_name: 'Two' }),
     event({ ts: '2024-01-05T10:00:00Z', master_metadata_track_name: 'Two', master_metadata_album_artist_name: 'New' }),
-    event({ ts: '2024-01-05T10:01:00Z', ms_played: 5000 }), event({ ts: '2025-02-01T10:00:00Z' })
+    event({ ts: '2024-01-05T10:01:00Z', ms_played: 5000, skipped: true, shuffle: true }), event({ ts: '2025-02-01T10:00:00Z', reason_end: 'trackdone', shuffle: false })
   ]);
   const stats = aggregate(mergeRows([], rows).rows, { utc: true });
   assert.deepEqual(stats.streak, { days: 3, from: '2024-01-01', to: '2024-01-03' });
@@ -93,6 +102,9 @@ test('streaks, sessions, repeats and the biggest day are derived consistently', 
   assert.equal(stats.sessions.count, 5); assert.equal(stats.sessions.longest.plays, 3);
   assert.equal(stats.firstPlay.ts, Date.parse('2024-01-01T10:03:00Z'));
   assert.equal(stats.daily.reduce((sum, day) => sum + day[1], 0), stats.ms);
+  // The 5 second skip doesn't count as a play, but it does count towards behaviour.
+  assert.equal(stats.behaviour.events, 8); assert.equal(stats.behaviour.known, 2); assert.equal(stats.behaviour.skips, 1);
+  assert.equal(stats.behaviour.shuffleKnown, 2); assert.equal(stats.behaviour.shuffles, 1); assert.equal(stats.behaviour.short, 1);
 });
 
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {

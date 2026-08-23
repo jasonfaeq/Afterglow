@@ -148,6 +148,11 @@ export function clockChart(w, values) {
   </svg>`;
 }
 
+export function ring(value, color, size = 68) {
+  const r = size / 2 - 6, C = 2 * Math.PI * r;
+  return `<svg class="ring-gauge" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="track" stroke-width="7" fill="none"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C * Math.min(1, value)} ${C}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+}
+
 export function sparkline(values) {
   const max = Math.max(...values, 1), w = 92, h = 34;
   const points = values.map((v, i) => [i * w / Math.max(values.length - 1, 1), h - 3 - v / max * (h - 8)]);

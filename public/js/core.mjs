@@ -1,5 +1,7 @@
-// Afterglow keeps only music metadata and listening time.
+// Afterglow keeps only music metadata, listening time and playback behaviour.
 // IP addresses, location, platform/device and account fields are dropped during normalization.
+const REASON = /^[a-z_-]{1,32}$/i;
+export const BEHAVIOUR_FIELDS = ['skipped', 'shuffle', 'offline', 'reasonStart', 'reasonEnd'];
 
 // Handles both Spotify exports: extended history (Streaming_History_Audio_*.json) and account data (StreamingHistory*.json).
 export function normalize(records) {
@@ -16,31 +18,45 @@ export function normalize(records) {
     const ts = Date.parse(stamp), ms = Number(item.ms_played ?? item.msPlayed);
     if (typeof track !== 'string' || !track.trim() || typeof artist !== 'string' || !artist.trim() || !Number.isFinite(ts) || !Number.isFinite(ms) || ms < 0) { ignored++; continue; }
     const uri = typeof item.spotify_track_uri === 'string' && /^spotify:track:[A-Za-z0-9]+$/.test(item.spotify_track_uri) ? item.spotify_track_uri : '';
-    rows.push({ ts, ms, track: track.trim(), artist: artist.trim(), album: String(item.master_metadata_album_album_name ?? '').trim(), uri });
+    const row = { ts, ms, track: track.trim(), artist: artist.trim(), album: String(item.master_metadata_album_album_name ?? '').trim(), uri };
+    if (typeof item.skipped === 'boolean') row.skipped = item.skipped;
+    if (typeof item.shuffle === 'boolean') row.shuffle = item.shuffle;
+    if (typeof item.offline === 'boolean') row.offline = item.offline;
+    if (typeof item.reason_start === 'string' && REASON.test(item.reason_start)) row.reasonStart = item.reason_start.toLowerCase();
+    if (typeof item.reason_end === 'string' && REASON.test(item.reason_end)) row.reasonEnd = item.reason_end.toLowerCase();
+    rows.push(row);
   }
   return { rows, ignored };
 }
 
 export const eventKey = row => JSON.stringify([row.ts, row.ms, row.track, row.artist, row.album, row.uri]);
 
-// Importing the same files twice must never inflate totals.
+// Importing the same files twice must never inflate totals, but a re-import can
+// fill in playback behaviour that an older (account data) import didn't have.
 export function mergeRows(existing, incoming) {
-  const seen = new Set(existing.map(eventKey));
+  const index = new Map();
+  for (const row of existing) index.set(eventKey(row), row);
   const rows = [...existing];
-  let duplicates = 0;
+  let duplicates = 0, enriched = 0;
   for (const row of incoming) {
-    const key = eventKey(row);
-    if (seen.has(key)) duplicates++;
-    else { seen.add(key); rows.push(row); }
+    const key = eventKey(row), known = index.get(key);
+    if (known) {
+      duplicates++;
+      let changed = false;
+      for (const field of BEHAVIOUR_FIELDS) if (known[field] === undefined && row[field] !== undefined) { known[field] = row[field]; changed = true; }
+      if (changed) enriched++;
+    } else { index.set(key, row); rows.push(row); }
   }
   rows.sort((a, b) => a.ts - b.ts);
-  return { rows, duplicates };
+  return { rows, duplicates, enriched };
 }
 
 const DAY = 86400000, SESSION_GAP = 20 * 60000;
 const pad = n => String(n).padStart(2, '0');
 const dayNumber = key => Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10)) / DAY;
 const topOf = map => { let best = null, value = -1; for (const [key, v] of map) if (v > value) { best = key; value = v; } return best === null ? null : [best, value]; };
+const isSkip = row => row.skipped === true || row.reasonEnd === 'fwdbtn';
+const hasBehaviour = row => typeof row.skipped === 'boolean' || !!row.reasonEnd;
 const bump = (map, key, by = 1) => map.set(key, (map.get(key) ?? 0) + by);
 const partsOf = utc => utc
   ? d => [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCDay(), d.getUTCHours()]
@@ -63,6 +79,8 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
   let ms = 0, plays = 0, start = Infinity, end = -Infinity, excluded = 0, firstPlay = null;
   let session = null, sessionCount = 0, sessionMs = 0, longestSession = null, lastTs = null;
   let runKey = null, runCount = 0, bestRun = null;
+  const behaviour = { events: 0, known: 0, skips: 0, shuffleKnown: 0, shuffles: 0, offlineKnown: 0, offline: 0, short: 0, starts: new Map(), ends: new Map() };
+  const trackSkips = new Map(), artistSkips = new Map();
   const closeSession = () => {
     if (!session) return;
     sessionCount++; sessionMs += session.ms;
@@ -79,6 +97,23 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
       const ft = firstTrack.get(trackKey); if (ft === undefined || row.ts < ft) firstTrack.set(trackKey, row.ts);
     }
     if (year !== 'all' && y !== Number(year)) continue;
+
+    // Behaviour includes short plays, since most skips happen in the first few seconds.
+    behaviour.events++;
+    if (row.ms < 30000) behaviour.short++;
+    if (hasBehaviour(row)) {
+      const skip = isSkip(row) ? 1 : 0;
+      behaviour.known++; behaviour.skips += skip;
+      const t = trackSkips.get(trackKey) ?? trackSkips.set(trackKey, { name: row.track, artist: row.artist, album: row.album, plays: 0, skips: 0 }).get(trackKey);
+      t.plays++; t.skips += skip;
+      const a = artistSkips.get(row.artist) ?? artistSkips.set(row.artist, { name: row.artist, plays: 0, skips: 0 }).get(row.artist);
+      a.plays++; a.skips += skip;
+    }
+    if (typeof row.shuffle === 'boolean') { behaviour.shuffleKnown++; if (row.shuffle) behaviour.shuffles++; }
+    if (typeof row.offline === 'boolean') { behaviour.offlineKnown++; if (row.offline) behaviour.offline++; }
+    if (row.reasonStart) bump(behaviour.starts, row.reasonStart);
+    if (row.reasonEnd) bump(behaviour.ends, row.reasonEnd);
+
     if (!counted) { excluded++; continue; }
     const monthKey = `${y}-${pad(mo + 1)}`, dayKey = `${monthKey}-${pad(dd)}`;
     if (row.ts < start) { start = row.ts; firstPlay = { name: row.track, artist: row.artist, album: row.album, ts: row.ts }; }
@@ -120,17 +155,25 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     return { key, ms: m?.ms ?? 0, plays: m?.plays ?? 0, artists: m?.artists.size ?? 0 };
   });
   for (const track of tracks.values()) {
-    track.first = firstTrack.get(`${track.artist}\u0000${track.name}`);
+    const key = `${track.artist}\u0000${track.name}`, skip = trackSkips.get(key);
+    track.first = firstTrack.get(key);
+    track.skips = skip?.skips ?? 0; track.known = skip?.plays ?? 0;
     const artist = artists.get(track.artist);
     if (artist) artist.trackCount++;
   }
   const rankedArtists = rank(artists);
   const artistTimeline = { keys, series: rankedArtists.slice(0, 6).map(a => ({ name: a.name, values: keys.map(k => a.monthly.get(k) ?? 0) })) };
   for (const artist of rankedArtists) {
+    const skip = artistSkips.get(artist.name);
     artist.first = firstArtist.get(artist.name);
     artist.months = artist.monthly.size;
+    artist.skips = skip?.skips ?? 0; artist.known = skip?.plays ?? 0;
     delete artist.monthly;
   }
+  const byCount = map => [...map].sort((a, b) => b[1] - a[1]).map(([reason, count]) => ({ reason, count }));
+  const tracksWithSkips = [...trackSkips.values()].filter(t => t.plays >= 5);
+  const mostSkipped = tracksWithSkips.filter(t => t.skips).sort((a, b) => b.skips / b.plays - a.skips / a.plays || b.plays - a.plays).slice(0, 6);
+  const neverSkipped = tracksWithSkips.filter(t => !t.skips).sort((a, b) => b.plays - a.plays).slice(0, 6);
   // Discoveries: artists first heard in the selected year, or in the last 12 months of an all-time view.
   const since = end - 365 * DAY;
   const discoveries = rankedArtists.filter(a => year === 'all' ? a.first >= since : parts(new Date(a.first))[0] === Number(year)).slice(0, 10);
@@ -167,6 +210,8 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     latestStreak: run ? { days: run.days, from: run.from, to: run.to } : null,
     biggestDay, firstPlay, repeat: bestRun,
     sessions: { count: sessionCount, avgMs: sessionCount ? sessionMs / sessionCount : 0, longest: longestSession },
+    behaviour: { events: behaviour.events, known: behaviour.known, skips: behaviour.skips, shuffleKnown: behaviour.shuffleKnown, shuffles: behaviour.shuffles,
+      offlineKnown: behaviour.offlineKnown, offline: behaviour.offline, short: behaviour.short, starts: byCount(behaviour.starts), ends: byCount(behaviour.ends), mostSkipped, neverSkipped },
     discoveries: { label: year === 'all' ? 'First heard in your last 12 months' : `First heard in ${year}`, items: has ? discoveries : [] },
     topShare: ms ? (rankedArtists[0]?.ms ?? 0) / ms : 0 };
 }
@@ -214,7 +259,8 @@ export function demoRows() {
     return r < .22 ? 7 + n(2) : r < .35 ? 12 + n(2) : r < .85 ? 17 + n(6) : r < .95 ? 23 : n(2);
   };
   const artists = DEMO_CATALOG.map(entry => ({ ...entry, tracks: entry.albums.flatMap(([album, names]) => names.map((name, i) => ({
-    name, album, artist: entry.artist, hit: 1 / (i + 1) ** .7, length: 150000 + hashString(entry.artist + name) % 180000, skip: hashString(name) % 100 / 1000
+    // Opening tracks are the favourites nobody skips.
+    name, album, artist: entry.artist, hit: 1 / (i + 1) ** .7, length: 150000 + hashString(entry.artist + name) % 180000, skip: i ? hashString(name) % 100 / 1000 : -1
   }))) }));
   const rows = [];
   let cursor = first;
@@ -265,7 +311,7 @@ export function demoRows() {
           if (mode !== 'artist') artist = weighted(artists, weights);
           track = weighted(artist.tracks, artist.tracks.map(t => t.hit));
         }
-        const skipped = random() < .05 + track.skip + (shuffle ? .03 : 0);
+        const skipped = track.skip >= 0 && random() < .05 + track.skip + (shuffle ? .03 : 0);
         let ms = track.length, reasonEnd = 'trackdone';
         if (skipped) { ms = 1500 + Math.floor(random() * 26000); reasonEnd = 'fwdbtn'; }
         else if ((p === size - 1 && random() < .35) || random() < .03) { ms = Math.floor(track.length * (.35 + random() * .55)); reasonEnd = 'endplay'; }

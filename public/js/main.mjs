@@ -51,7 +51,7 @@ worker.onmessage = ({ data }) => {
   if ('isDemo' in data) { state.isDemo = data.isDemo; $('#demo-banner').hidden = !state.isDemo; }
   if (data.type === 'imported') {
     setBusy(false); $('#import-dialog').close();
-    notify(`Your library is ready: ${plural(data.stats.plays, 'play')} from ${plural(data.files.length, 'file')}${data.duplicates ? `, ${number(data.duplicates)} duplicates skipped` : ''}.${data.persisted ? '' : ' Browser storage is unavailable, so this lasts for this visit only.'}`);
+    notify(`Your library is ready: ${plural(data.stats.plays, 'play')} from ${plural(data.files.length, 'file')}${data.duplicates ? `, ${number(data.duplicates)} duplicates skipped` : ''}${data.enriched ? `, ${number(data.enriched)} older plays gained skip & shuffle details` : ''}.${data.persisted ? '' : ' Browser storage is unavailable, so this lasts for this visit only.'}`);
   }
   state.stats = data.stats;
   syncYears();
