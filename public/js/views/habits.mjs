@@ -50,7 +50,7 @@ export function heatmap(stats, cls = 'span-7') {
 function sessions(stats) {
   const s = stats.sessions;
   const tiles = [[number(s.count), 'sessions'], [clockDuration(s.avgMs), 'average length'], [decimal(s.count / (stats.activeDays || 1)), 'per active day'], [s.longest ? clockDuration(s.longest.ms) : '—', 'longest']];
-  return panel('Listening sessions', 'A run of plays with less than 20 minutes of silence in between.', `<div class="mini-stats">${tiles.map(([value, label]) => `<div><strong>${value}</strong><span>${label}</span></div>`).join('')}</div>
+  return panel('Listening sessions', 'A run of plays with less than 30 minutes of silence in between.', `<div class="mini-stats">${tiles.map(([value, label]) => `<div><strong>${value}</strong><span>${label}</span></div>`).join('')}</div>
     ${s.longest ? insight('headphones', `Your longest session started on ${formatDate(s.longest.start, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}: <strong>${plural(s.longest.plays, 'track')}</strong> back to back.`) : ''}`, { cls: 'span-5' });
 }
 

@@ -51,7 +51,7 @@ export function mergeRows(existing, incoming) {
   return { rows, duplicates, enriched };
 }
 
-const DAY = 86400000, SESSION_GAP = 20 * 60000;
+const DAY = 86400000, SESSION_GAP = 30 * 60000;
 const pad = n => String(n).padStart(2, '0');
 const dayNumber = key => Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10)) / DAY;
 const topOf = map => { let best = null, value = -1; for (const [key, v] of map) if (v > value) { best = key; value = v; } return best === null ? null : [best, value]; };

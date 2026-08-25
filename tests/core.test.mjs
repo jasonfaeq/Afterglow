@@ -107,6 +107,12 @@ test('streaks, sessions, repeats and the biggest day are derived consistently', 
   assert.equal(stats.behaviour.shuffleKnown, 2); assert.equal(stats.behaviour.shuffles, 1); assert.equal(stats.behaviour.short, 1);
 });
 
+test('a 25 minute pause does not split a listening session', () => {
+  // The second play starts at 10:28, 25 minutes after the first one ended.
+  const { rows } = normalize([event({ ts: '2024-01-01T10:03:00Z' }), event({ ts: '2024-01-01T10:31:00Z' })]);
+  assert.equal(aggregate(rows, { utc: true }).sessions.count, 1);
+});
+
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {
   const result = aggregate(normalize([event()]).rows, { year: '2000', utc: true });
   assert.equal(result.plays, 0); assert.equal(result.start, null); assert.equal(result.end, null);
