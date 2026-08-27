@@ -31,10 +31,12 @@ export const monthLabel = (key, long = false) => new Date(`${key}-01T12:00:00Z`)
 export const hourLabel = hour => `${hour % 12 || 12}${hour >= 12 ? 'pm' : 'am'}`;
 export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-// Round chart maximums up to friendly numbers (1, 2, 2.5, 5, 10 × 10ⁿ per tick).
+// Round chart maximums up to a friendly tick size without wasting half the chart.
+// 1.25 and 1.5 steps are only used where the ticks still come out as whole numbers.
 export function niceMax(value, ticks = 4) {
   if (!(value > 0)) return ticks;
   const raw = value / ticks, pow = 10 ** Math.floor(Math.log10(raw)), f = raw / pow;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * pow * ticks;
+  const steps = pow >= 100 ? [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10] : pow >= 10 ? [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10] : [1, 2, 3, 4, 5, 6, 8, 10];
+  return steps.find(step => f <= step + 1e-9) * pow * ticks;
 }
-export const axisNumber = value => value >= 10000 ? `${decimal(value / 1000)}k` : number(value);
+export const axisNumber = value => value >= 10000 ? `${decimal(value / 1000)}k` : Number.isInteger(Math.round(value * 1e6) / 1e6) ? number(value) : decimal(value);
