@@ -74,7 +74,7 @@ function monthRange(firstKey, lastKey) {
 export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } = {}) {
   const parts = partsOf(utc), years = new Set();
   const artists = new Map(), tracks = new Map(), albums = new Map(), months = new Map(), daily = new Map();
-  const firstArtist = new Map(), firstTrack = new Map();
+  const firstArtist = new Map(), firstTrack = new Map(), trackAlbum = new Map(), yearly = new Map();
   const heat = Array.from({ length: 7 }, () => Array(24).fill(0));
   let ms = 0, plays = 0, start = Infinity, end = -Infinity, excluded = 0, firstPlay = null;
   let session = null, sessionCount = 0, sessionMs = 0, longestSession = null, lastTs = null;
@@ -91,10 +91,15 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     const [y, mo, dd, wd, h] = parts(new Date(row.ts));
     years.add(y);
     const counted = row.ms >= minimum, trackKey = `${row.artist}\u0000${row.track}`;
+    const monthKey = `${y}-${pad(mo + 1)}`, dayKey = `${monthKey}-${pad(dd)}`;
     if (counted) {
-      // Library-wide, so "first heard" doesn't move around with the year filter.
+      // Library-wide, so "first heard" and the year-by-year comparison don't move with the year filter.
       const fa = firstArtist.get(row.artist); if (fa === undefined || row.ts < fa) firstArtist.set(row.artist, row.ts);
       const ft = firstTrack.get(trackKey); if (ft === undefined || row.ts < ft) firstTrack.set(trackKey, row.ts);
+      if (row.album && !trackAlbum.has(trackKey)) trackAlbum.set(trackKey, row.album);
+      let ys = yearly.get(y);
+      if (!ys) yearly.set(y, ys = { year: y, ms: 0, plays: 0, artists: new Map(), tracks: new Map(), days: new Set() });
+      ys.ms += row.ms; ys.plays++; bump(ys.artists, row.artist, row.ms); bump(ys.tracks, trackKey, row.ms); ys.days.add(dayKey);
     }
     if (year !== 'all' && y !== Number(year)) continue;
 
@@ -115,7 +120,6 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     if (row.reasonEnd) bump(behaviour.ends, row.reasonEnd);
 
     if (!counted) { excluded++; continue; }
-    const monthKey = `${y}-${pad(mo + 1)}`, dayKey = `${monthKey}-${pad(dd)}`;
     if (row.ts < start) { start = row.ts; firstPlay = { name: row.track, artist: row.artist, album: row.album, ts: row.ts }; }
     end = Math.max(end, row.ts);
     const day = daily.get(dayKey) ?? daily.set(dayKey, { ms: 0, plays: 0, ts: row.ts }).get(dayKey);
@@ -150,9 +154,14 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
 
   const has = Number.isFinite(start), monthKeys = [...months.keys()].sort();
   const keys = has ? monthRange(monthKeys[0], monthKeys.at(-1)) : [];
+  const newByMonth = new Map();
+  for (const [name, ts] of firstArtist) if (artists.has(name) && ts >= start) {
+    const [fy, fm] = parts(new Date(ts));
+    bump(newByMonth, `${fy}-${pad(fm + 1)}`);
+  }
   const timeline = keys.map(key => {
     const m = months.get(key);
-    return { key, ms: m?.ms ?? 0, plays: m?.plays ?? 0, artists: m?.artists.size ?? 0 };
+    return { key, ms: m?.ms ?? 0, plays: m?.plays ?? 0, artists: m?.artists.size ?? 0, newArtists: newByMonth.get(key) ?? 0 };
   });
   for (const track of tracks.values()) {
     const key = `${track.artist}\u0000${track.name}`, skip = trackSkips.get(key);
@@ -202,7 +211,18 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     if (topArtist) biggestDay.artist = topArtist[0];
   }
 
-  return { ms, plays, artistCount: artists.size, trackCount: tracks.size, albumCount: albums.size, activeDays: daily.size,
+  // Year by year, independent of the year filter.
+  const newPerYear = new Map();
+  for (const ts of firstArtist.values()) bump(newPerYear, parts(new Date(ts))[0]);
+  const yearlyList = [...yearly.values()].sort((a, b) => a.year - b.year).map(ys => {
+    const topArtist = topOf(ys.artists), topTrack = topOf(ys.tracks);
+    const [trackArtist, trackName] = topTrack ? topTrack[0].split('\u0000') : [];
+    return { year: ys.year, ms: ys.ms, plays: ys.plays, artistCount: ys.artists.size, trackCount: ys.tracks.size, activeDays: ys.days.size, newArtists: newPerYear.get(ys.year) ?? 0,
+      topArtist: topArtist ? { name: topArtist[0], ms: topArtist[1] } : null,
+      topTrack: topTrack ? { name: trackName, artist: trackArtist, album: trackAlbum.get(topTrack[0]) ?? '', ms: topTrack[1] } : null };
+  });
+
+  return { ms, plays, artistCount: artists.size, trackCount: tracks.size, albumCount: albums.size, activeDays: daily.size, yearly: yearlyList,
     start: has ? start : null, end: has ? end : null, years: [...years].sort((a, b) => b - a),
     artists: rankedArtists, tracks: rank(tracks), albums: rank(albums), timeline, heat, excluded, artistTimeline,
     daily: dailyList.map(([key, value]) => [key, value.ms, value.plays]),

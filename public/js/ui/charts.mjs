@@ -77,6 +77,22 @@ export function areaChart(w, { values, label, tip, height = 250, format = axisNu
   </svg>`;
 }
 
+export function barChart(w, { values, label, sublabel, tip, height = 220, highlight = -1, format = axisNumber, aria = 'Bar chart' }) {
+  const H = height, left = 44, right = 8, top = 16, bottom = sublabel ? 46 : 30, n = values.length, id = `g${++sequence}`;
+  const max = niceMax(Math.max(...values, 0)), slot = (w - left - right) / Math.max(n, 1), bw = Math.max(3, Math.min(56, slot * .62));
+  const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((w - left - right) / 46))));
+  return `<svg class="chart bars" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" role="img" aria-label="${escape(aria)}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2557a"/><stop offset="1" stop-color="#8b5cf6" stop-opacity=".5"/></linearGradient>
+    <linearGradient id="${id}-hi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc46b"/><stop offset="1" stop-color="#ff7a5c"/></linearGradient></defs>
+    ${gridLines({ w, H, left, right, top, bottom, max, format })}
+    ${values.map((v, i) => {
+      const bh = v / max * (H - top - bottom), bx = left + i * slot + (slot - bw) / 2;
+      return `<g class="pt bar${i === highlight ? ' hi' : ''}" tabindex="0" data-tip="${escape(tip(i))}"><rect class="hit" x="${left + i * slot}" y="${top}" width="${slot}" height="${H - top - bottom}"/><rect class="dot bar-fill" x="${bx}" y="${H - bottom - bh}" width="${bw}" height="${Math.max(bh, v ? 2 : 0)}" rx="${Math.min(7, bw / 3)}" fill="url(#${id}${i === highlight ? '-hi' : ''})"/></g>`;
+    }).join('')}
+    ${values.map((v, i) => i % every === 0 ? `<text class="${i === highlight ? 'strong' : ''}" x="${left + (i + .5) * slot}" y="${H - bottom + 18}" text-anchor="middle">${escape(label(i))}</text>${sublabel ? `<text class="sub" x="${left + (i + .5) * slot}" y="${H - bottom + 34}" text-anchor="middle">${escape(sublabel(i))}</text>` : ''}` : '').join('')}
+  </svg>`;
+}
+
 // Monthly hours for a handful of series, stacked. `tip(i)` describes one month.
 export function stackChart(w, { keys, series, label, tip, aria = 'Stacked chart' }) {
   const H = w < 520 ? 220 : 280, left = 44, right = 12, top = 16, bottom = 30, n = keys.length;

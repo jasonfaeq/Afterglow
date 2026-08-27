@@ -69,6 +69,8 @@ test('the sample library is reproducible, ordered, and its totals balance', () =
   assert.ok(rows.every((row, i) => !i || rows[i - 1].ts <= row.ts));
   assert.equal(stats.timeline.reduce((sum, month) => sum + month.ms, 0), stats.ms);
   assert.equal(stats.artists.reduce((sum, artist) => sum + artist.plays, 0), stats.plays);
+  assert.equal(stats.yearly.reduce((sum, year) => sum + year.ms, 0), stats.ms);
+  assert.equal(stats.timeline.reduce((sum, month) => sum + month.newArtists, 0), stats.artistCount);
   assert.ok(stats.artistCount > 10 && stats.albumCount > 10);
   assert.ok(stats.behaviour.known > 0 && stats.behaviour.neverSkipped.length > 0 && stats.discoveries.items.length > 0);
 });
@@ -102,6 +104,9 @@ test('streaks, sessions, repeats and the biggest day are derived consistently', 
   assert.equal(stats.sessions.count, 5); assert.equal(stats.sessions.longest.plays, 3);
   assert.equal(stats.firstPlay.ts, Date.parse('2024-01-01T10:03:00Z'));
   assert.equal(stats.daily.reduce((sum, day) => sum + day[1], 0), stats.ms);
+  assert.deepEqual(stats.yearly.map(y => [y.year, y.plays, y.newArtists]), [[2024, 6, 2], [2025, 1, 0]]);
+  assert.equal(stats.yearly[0].topTrack.name, 'One'); assert.equal(stats.yearly[0].topTrack.album, 'Album');
+  assert.equal(stats.timeline[0].newArtists, 2); assert.equal(stats.timeline.at(-1).newArtists, 0);
   // The 5 second skip doesn't count as a play, but it does count towards behaviour.
   assert.equal(stats.behaviour.events, 8); assert.equal(stats.behaviour.known, 2); assert.equal(stats.behaviour.skips, 1);
   assert.equal(stats.behaviour.shuffleKnown, 2); assert.equal(stats.behaviour.shuffles, 1); assert.equal(stats.behaviour.short, 1);

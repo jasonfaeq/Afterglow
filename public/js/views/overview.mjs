@@ -18,16 +18,25 @@ function spotlight(stats) {
   </section>`;
 }
 
+// With a year selected, each tile compares against the year before.
+function delta(current, previous) {
+  if (state.filters.year === 'all' || !previous) return '';
+  const change = (current - previous) / previous;
+  if (!Number.isFinite(change)) return '';
+  return `<span class="delta ${change >= 0 ? 'up' : 'down'}" title="Compared with ${Number(state.filters.year) - 1}">${change >= 0 ? '↑' : '↓'} ${percent(Math.abs(change))}</span>`;
+}
+
 function statTiles(stats) {
   const top10 = stats.artists.slice(0, 10).reduce((sum, a) => sum + a.ms, 0) / (stats.ms || 1);
+  const prev = stats.yearly.find(y => y.year === Number(state.filters.year) - 1), current = stats.yearly.find(y => y.year === Number(state.filters.year));
   const tiles = [
-    ['clock', 'Listening time', number(hours(stats.ms)), 'hrs', `${decimal(stats.ms / DAY)} days of music · ${duration(stats.ms / (stats.activeDays || 1))} on an average day`, sparkline(stats.timeline.slice(-18).map(m => m.ms))],
-    ['play', 'Plays', number(stats.plays), '', `${plural(stats.activeDays, 'day')} with music · ${duration(stats.ms / (stats.plays || 1))} per play`],
-    ['artists', 'Artists', number(stats.artistCount), '', `Your top 10 make up ${percent(top10)} of your time`],
-    ['music', 'Tracks', number(stats.trackCount), '', `${plural(stats.albumCount, 'album')} · ${decimal(stats.trackCount / (stats.artistCount || 1))} per artist`]
+    ['clock', 'Listening time', number(hours(stats.ms)), 'hrs', `${decimal(stats.ms / DAY)} days of music · ${duration(stats.ms / (stats.activeDays || 1))} on an average day`, delta(stats.ms, prev?.ms), sparkline(stats.timeline.slice(-18).map(m => m.ms))],
+    ['play', 'Plays', number(stats.plays), '', `${plural(stats.activeDays, 'day')} with music · ${duration(stats.ms / (stats.plays || 1))} per play`, delta(stats.plays, prev?.plays)],
+    ['artists', 'Artists', number(stats.artistCount), '', current ? `${plural(current.newArtists, 'new artist')} discovered in ${current.year}` : `Your top 10 make up ${percent(top10)} of your time`, delta(stats.artistCount, prev?.artistCount)],
+    ['music', 'Tracks', number(stats.trackCount), '', `${plural(stats.albumCount, 'album')} · ${decimal(stats.trackCount / (stats.artistCount || 1))} per artist`, delta(stats.trackCount, prev?.trackCount)]
   ];
-  return `<section class="stat-grid span-5" aria-label="Listening summary">${tiles.map(([name, label, value, unit, sub, spark = '']) => `<article class="stat">
-    <div class="stat-label">${icon(name)}${label}</div>
+  return `<section class="stat-grid span-5" aria-label="Listening summary">${tiles.map(([name, label, value, unit, sub, change, spark = '']) => `<article class="stat">
+    <div class="stat-label">${icon(name)}${label}${change}</div>
     <div class="stat-row"><div class="stat-value">${value}${unit ? `<small>${unit}</small>` : ''}</div>${spark}</div>
     <p class="stat-sub">${sub}</p></article>`).join('')}</section>`;
 }
@@ -35,7 +44,8 @@ function statTiles(stats) {
 const METRICS = {
   ms: ['Hours', m => hours(m.ms), v => `${decimal(v)} hrs`],
   plays: ['Plays', m => m.plays, v => plural(v, 'play')],
-  artists: ['Artists', m => m.artists, v => plural(v, 'artist')]
+  artists: ['Artists', m => m.artists, v => plural(v, 'artist')],
+  newArtists: ['New artists', m => m.newArtists, v => plural(v, 'new artist')]
 };
 function timeline(stats) {
   const data = stats.timeline, [label, read, fmt] = METRICS[state.timelineMetric], values = data.map(read);

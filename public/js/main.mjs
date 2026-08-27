@@ -7,13 +7,15 @@ import * as overview from './views/overview.mjs';
 import * as artists from './views/artists.mjs';
 import * as tracks from './views/tracks.mjs';
 import * as habits from './views/habits.mjs';
+import * as years from './views/years.mjs';
 
-const VIEWS = { overview, artists, tracks, habits };
+const VIEWS = { overview, artists, tracks, habits, years };
 const TITLES = {
   overview: ['A soundtrack worth exploring', 'Your music, <em>in perspective.</em>', 'The songs you come back to. The artists that stay with you. It’s all here.'],
   artists: ['The voices behind it all', 'The artists <em>that stay with you.</em>', 'Familiar favourites, new discoveries, and full-album moments.'],
   tracks: ['Song by song', 'Some songs <em>just stick.</em>', 'Every track in your history. Search, sort, and find the ones you never skip.'],
-  habits: ['When the music plays', 'There’s a rhythm <em>to your days.</em>', 'Early starts, late nights, streaks and sessions.']
+  habits: ['When the music plays', 'There’s a rhythm <em>to your days.</em>', 'Early starts, late nights, streaks and sessions.'],
+  years: ['How your taste has moved', 'Every year <em>sounds different.</em>', 'How your listening has grown, shifted and surprised you over time.']
 };
 const worker = new Worker(new URL('./worker.mjs', import.meta.url), { type: 'module' });
 let queryId = 0, toastTimer, firstRender = true;
@@ -107,6 +109,10 @@ document.addEventListener('click', event => {
   if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
   if (target.dataset.sort) { state.tracks.sort = target.dataset.sort; state.tracks.page = 0; render(); }
   if (target.dataset.calYear) { state.calendarYear = Number(target.dataset.calYear); render(); }
+  if (target.dataset.year) {
+    state.filters.year = target.dataset.year; $('#year-filter').value = target.dataset.year;
+    location.hash = '#/overview'; query();
+  }
   if (target.id === 'prev-page' || target.id === 'next-page') {
     state.tracks.page += target.id === 'next-page' ? 1 : -1;
     tracks.update(state.stats);
