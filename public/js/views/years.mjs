@@ -1,7 +1,7 @@
 import { state } from '../state.mjs';
 import { escape, number, percent, hours, duration, plural } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, insight, art } from '../ui/components.mjs';
+import { panel, insight, art, artistLink } from '../ui/components.mjs';
 import { chart, barChart } from '../ui/charts.mjs';
 
 export function render(stats) {
@@ -23,7 +23,7 @@ export function render(stats) {
     <header><h3>${y.year}</h3><button class="link" data-year="${y.year}">Explore ${icon('arrow')}</button></header>
     <p class="year-hours">${number(hours(y.ms))}<small>hrs</small></p>
     <dl><div><dt>Plays</dt><dd>${number(y.plays)}</dd></div><div><dt>Artists</dt><dd>${number(y.artistCount)}</dd></div><div><dt>New artists</dt><dd>${number(y.newArtists)}</dd></div><div><dt>Days with music</dt><dd>${number(y.activeDays)}</dd></div></dl>
-    ${y.topArtist ? `<div class="year-top">${art('artist', y.topArtist)}<div><span>Top artist</span><strong>${escape(y.topArtist.name)}</strong></div></div>` : ''}
+    ${y.topArtist ? `<div class="year-top">${art('artist', y.topArtist)}<div><span>Top artist</span><strong>${artistLink(y.topArtist.name)}</strong></div></div>` : ''}
     ${y.topTrack ? `<div class="year-top">${art('track', y.topTrack)}<div><span>Top track</span><strong title="${escape(y.topTrack.name)}">${escape(y.topTrack.name)}</strong></div></div>` : ''}
   </article>`).join('');
   return `<div class="grid">${hoursPanel}${small('New artists per year', 'Artists you heard for the very first time.', y => y.newArtists, v => plural(v, 'new artist'))}${small('Days with music', 'How many days each year had a soundtrack.', y => y.activeDays, v => plural(v, 'day'))}

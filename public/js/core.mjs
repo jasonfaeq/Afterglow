@@ -236,6 +236,35 @@ export function aggregate(rows, { year = 'all', minimum = 30000, utc = false } =
     topShare: ms ? (rankedArtists[0]?.ms ?? 0) / ms : 0 };
 }
 
+// One artist up close, using the same filters as the dashboard.
+export function artistDetail(rows, name, { year = 'all', minimum = 30000, utc = false } = {}) {
+  const parts = partsOf(utc);
+  const tracks = new Map(), albums = new Map(), months = new Map();
+  const hours = Array(24).fill(0), weekdays = Array(7).fill(0);
+  let ms = 0, plays = 0, first = null, last = null, everFirst = null, everLast = null, known = 0, skips = 0, totalMs = 0;
+  for (const row of rows) {
+    const [y, mo, , wd, h] = parts(new Date(row.ts));
+    const inYear = year === 'all' || y === Number(year);
+    if (inYear && row.ms >= minimum) totalMs += row.ms;
+    if (row.artist !== name) continue;
+    if (row.ms >= minimum) { everFirst = everFirst === null ? row.ts : Math.min(everFirst, row.ts); everLast = everLast === null ? row.ts : Math.max(everLast, row.ts); }
+    if (!inYear) continue;
+    if (hasBehaviour(row)) { known++; if (isSkip(row)) skips++; }
+    if (row.ms < minimum) continue;
+    ms += row.ms; plays++;
+    first = first === null ? row.ts : Math.min(first, row.ts); last = last === null ? row.ts : Math.max(last, row.ts);
+    const t = tracks.get(row.track) ?? tracks.set(row.track, { name: row.track, artist: name, album: row.album, uri: row.uri, ms: 0, plays: 0 }).get(row.track);
+    t.ms += row.ms; t.plays++;
+    if (!t.uri && row.uri) t.uri = row.uri;
+    if (row.album) { const a = albums.get(row.album) ?? albums.set(row.album, { name: row.album, artist: name, ms: 0, plays: 0 }).get(row.album); a.ms += row.ms; a.plays++; }
+    bump(months, `${y}-${pad(mo + 1)}`, row.ms);
+    hours[h] += row.ms; weekdays[(wd + 6) % 7] += row.ms;
+  }
+  const keys = months.size ? monthRange([...months.keys()].sort()[0], [...months.keys()].sort().at(-1)) : [];
+  return { name, ms, plays, share: totalMs ? ms / totalMs : 0, trackCount: tracks.size, albumCount: albums.size, first, last, everFirst, everLast,
+    known, skips, tracks: rank(tracks).slice(0, 10), albums: rank(albums).slice(0, 6), timeline: keys.map(key => ({ key, ms: months.get(key) ?? 0 })), hours, weekdays };
+}
+
 /* ---------- Sample library ---------- */
 // A made-up listener, so the dashboard has something to show before an import.
 // Every artist, album and track below is fictional. `joins` is the day (from Jan 1, 2024) they were first heard.

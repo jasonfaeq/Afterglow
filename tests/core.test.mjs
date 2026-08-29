@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, mergeRows, aggregate, demoRows } from '../public/js/core.mjs';
+import { normalize, mergeRows, aggregate, artistDetail, demoRows } from '../public/js/core.mjs';
 
 const event = (overrides = {}) => ({
   ts: '2024-01-01T15:30:00Z', ms_played: 180000,
@@ -116,6 +116,15 @@ test('a 25 minute pause does not split a listening session', () => {
   // The second play starts at 10:28, 25 minutes after the first one ended.
   const { rows } = normalize([event({ ts: '2024-01-01T10:03:00Z' }), event({ ts: '2024-01-01T10:31:00Z' })]);
   assert.equal(aggregate(rows, { utc: true }).sessions.count, 1);
+});
+
+test('artist detail matches the dashboard totals for the same filters', () => {
+  const rows = demoRows(), filters = { year: '2025', minimum: 30000, utc: true };
+  const stats = aggregate(rows, filters), top = stats.artists[0], detail = artistDetail(rows, top.name, filters);
+  assert.equal(detail.ms, top.ms); assert.equal(detail.plays, top.plays); assert.equal(detail.trackCount, top.trackCount);
+  assert.equal(detail.timeline.reduce((sum, m) => sum + m.ms, 0), top.ms);
+  assert.equal(detail.hours.reduce((a, b) => a + b, 0), top.ms);
+  assert.ok(Math.abs(detail.share - top.ms / stats.ms) < 1e-9);
 });
 
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {

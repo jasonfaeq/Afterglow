@@ -14,6 +14,10 @@ export function art(kind, item, size = 'sm') {
   return `<span class="art art-${size} art-${kind}" style="--c1:${c1};--c2:${c2}" aria-hidden="true"><span class="art-initial">${escape([...label][0] ?? '♪')}</span></span>`;
 }
 
+// Anything with data-open opens a detail dialog.
+export const openAttrs = (kind, name, artist = '') => `data-open="${kind}" data-name="${escape(name)}"${artist ? ` data-artist="${escape(artist)}"` : ''}`;
+export const artistLink = (name, cls = 'link-name') => `<button class="${cls}" ${openAttrs('artist', name)}>${escape(name)}</button>`;
+
 export const panel = (title, subtitle, body, { cls = '', action = '' } = {}) =>
   `<section class="panel ${cls}"><header class="panel-head"><div><h2>${title}</h2>${subtitle ? `<p>${subtitle}</p>` : ''}</div>${action}</header>${body}</section>`;
 

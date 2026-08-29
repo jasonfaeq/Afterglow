@@ -8,6 +8,7 @@ import * as artists from './views/artists.mjs';
 import * as tracks from './views/tracks.mjs';
 import * as habits from './views/habits.mjs';
 import * as years from './views/years.mjs';
+import { artistView, loadingDetail } from './dialogs/details.mjs';
 
 const VIEWS = { overview, artists, tracks, habits, years };
 const TITLES = {
@@ -18,7 +19,7 @@ const TITLES = {
   years: ['How your taste has moved', 'Every year <em>sounds different.</em>', 'How your listening has grown, shifted and surprised you over time.']
 };
 const worker = new Worker(new URL('./worker.mjs', import.meta.url), { type: 'module' });
-let queryId = 0, toastTimer, firstRender = true;
+let queryId = 0, detailId = 0, toastTimer, firstRender = true;
 
 /* ---------- Helpers ---------- */
 export function notify(message) {
@@ -32,6 +33,12 @@ function showDialog(selector) {
   if (!dialog.open) dialog.showModal();
 }
 function query() { if (!state.busy) worker.postMessage({ type: 'query', id: ++queryId, filters: state.filters }); }
+function openDetail(kind, name, artist) {
+  $('#detail-body').innerHTML = loadingDetail(name);
+  hydrateIcons($('#detail-body'));
+  showDialog('#detail-dialog');
+  worker.postMessage({ type: 'detail', id: ++detailId, kind, name, artist, filters: state.filters });
+}
 function setBusy(value) {
   state.busy = value;
   $('#drop-zone').classList.toggle('busy', value);
@@ -48,6 +55,14 @@ function showError(message) {
 worker.onmessage = ({ data }) => {
   if (data.type === 'progress') { $('#progress-text').textContent = data.message; return; }
   if (data.type === 'error') { setBusy(false); showError(data.message); return; }
+  if (data.type === 'detail') {
+    if (data.id !== detailId) return;
+    $('#detail-body').innerHTML = artistView(data.detail, state.stats);
+    $('#detail-dialog').scrollTop = 0;
+    hydrateIcons($('#detail-body'));
+    drawCharts();
+    return;
+  }
   if (data.type === 'stats' && data.id !== queryId) return;
   if (data.files) state.files = data.files;
   if ('isDemo' in data) { state.isDemo = data.isDemo; $('#demo-banner').hidden = !state.isDemo; }
@@ -102,6 +117,8 @@ function route() {
 
 /* ---------- Events ---------- */
 document.addEventListener('click', event => {
+  const opener = event.target.closest('[data-open]');
+  if (opener && !event.target.closest('a[href]')) { openDetail(opener.dataset.open, opener.dataset.name, opener.dataset.artist); return; }
   const target = event.target.closest('button, a');
   if (!target) return;
   if (target.matches('.import-trigger')) { $('#import-error').hidden = true; showDialog('#import-dialog'); return; }

@@ -1,4 +1,4 @@
-import { normalize, mergeRows, aggregate, demoRows } from './core.mjs';
+import { normalize, mergeRows, aggregate, artistDetail, demoRows } from './core.mjs';
 
 // Until something is imported, the dashboard runs on the fictional sample library.
 let rows = [], files = [], isDemo = true;
@@ -115,6 +115,7 @@ async function handle(data) {
       post('ready', { isDemo, files, stats: aggregate(rows, data.filters) });
     }
     if (data.type === 'query') post('stats', { id: data.id, stats: aggregate(rows, data.filters) });
+    if (data.type === 'detail') post('detail', { id: data.id, kind: data.kind, detail: artistDetail(rows, data.name, data.filters) });
     if (data.type === 'import') {
       const { incoming, added, ignored } = await readFiles(data.files);
       if (!incoming.length) throw new Error('No music listening events were found in those files.');

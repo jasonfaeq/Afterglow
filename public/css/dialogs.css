@@ -10,6 +10,35 @@
 .dialog-note { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--surface); color: var(--ink-2); font-size: 13px; }
 .dialog-note .i { color: var(--amber); margin-top: 1px; }
 
+/* Artist, album and track details */
+.dialog-wide { width: min(940px, calc(100vw - 32px)); padding: 0; }
+.dialog-wide .loading { padding: 120px 0; }
+.detail-close { position: absolute; top: 18px; right: 18px; z-index: 2; background: rgba(10, 9, 16, .35); }
+.detail-hero { position: relative; display: flex; align-items: center; gap: 28px; padding: 34px 34px 30px; overflow: hidden; isolation: isolate; border-bottom: 1px solid var(--line); }
+.detail-hero::before { content: ''; position: absolute; inset: -40%; z-index: -1; background: radial-gradient(closest-side at 18% 45%, var(--c1), transparent), radial-gradient(closest-side at 70% 30%, var(--c2), transparent); opacity: .34; filter: blur(50px); }
+.detail-heading { display: grid; gap: 8px; min-width: 0; padding-right: 40px; }
+.detail-title { font: 400 clamp(32px, 5vw, 48px)/1.04 var(--serif); letter-spacing: -.02em; overflow-wrap: anywhere; }
+.detail-heading p { color: var(--ink-2); font-size: 13.5px; }
+.detail-body { padding: 26px 34px 34px; }
+.detail-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.detail-stats div { padding: 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.detail-stats strong { display: block; font-size: 22px; font-weight: 650; letter-spacing: -.02em; }
+.detail-stats span { color: var(--ink-3); font-size: 12.5px; }
+.detail-section { margin: 28px 0 14px; color: var(--ink-2); font-size: 12px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; }
+.detail-columns { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 34px; }
+.detail-tracks { display: grid; gap: 10px; }
+.detail-tracks li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.detail-tracks div { min-width: 0; }
+.detail-track-name { display: block; overflow: hidden; font-size: 13.5px; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
+.detail-tracks em { color: var(--ink-3); font-size: 12px; font-style: normal; white-space: nowrap; }
+.detail-tracks .bar { margin-top: 5px; }
+.detail-note { margin-top: 12px; color: var(--ink-2); font-size: 13px; }
+.detail-note strong { color: var(--ink); }
+.album-chips { display: grid; gap: 8px; }
+.album-chip { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; font-weight: 550; }
+.album-chip > span:last-child { display: grid; min-width: 0; }
+.album-chip em { color: var(--ink-3); font-size: 12px; font-style: normal; font-weight: 500; }
+
 /* Import */
 .drop-zone { position: relative; display: grid; justify-items: center; gap: 6px; padding: 36px 20px; border-radius: 20px; border: 1.5px dashed rgba(255, 180, 94, .32); background: radial-gradient(420px 160px at 50% 0%, rgba(255, 180, 94, .08), transparent 70%), rgba(255, 255, 255, .02); text-align: center; cursor: pointer; transition: border-color .2s, background-color .2s, transform .2s var(--ease); }
 .drop-zone:hover, .drop-zone.dragging { border-color: var(--amber); background-color: rgba(255, 180, 94, .06); }
@@ -26,5 +55,12 @@
 
 .tooltip { position: fixed; z-index: 90; max-width: 280px; padding: 9px 12px; border-radius: 11px; background: rgba(30, 25, 38, .97); border: 1px solid var(--line-2); box-shadow: 0 14px 34px -10px rgba(0, 0, 0, .8); color: var(--ink-2); font-size: 12.5px; line-height: 1.5; white-space: pre-line; pointer-events: none; }
 .tooltip::first-line { color: var(--ink); font-weight: 650; }
+@media (max-width: 760px) {
+  .dialog { padding: 22px; border-radius: 22px; }
+  .dialog-wide { padding: 0; }
+  .detail-hero { flex-direction: column; align-items: flex-start; gap: 18px; padding: 28px 22px 22px; }
+  .detail-body { padding: 20px 22px 26px; }
+  .detail-columns { grid-template-columns: 1fr; gap: 0; }
+}
 .toast { position: fixed; z-index: 80; left: 50%; bottom: 28px; max-width: min(560px, calc(100vw - 32px)); padding: 13px 18px; border-radius: 14px; background: #1d1826; border: 1px solid var(--line-2); box-shadow: 0 20px 50px -14px rgba(0, 0, 0, .8); font-size: 13.5px; transform: translateX(-50%); animation: toast .35s var(--ease); }
 @keyframes toast { from { opacity: 0; transform: translate(-50%, 10px); } }
