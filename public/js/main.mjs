@@ -1,4 +1,5 @@
 import { state } from './state.mjs';
+import { toCSV } from './core.mjs';
 import { $, $$, number, plural, formatDate, hours, useUTC } from './lib/format.mjs';
 import { hydrateIcons } from './lib/icons.mjs';
 import { drawCharts } from './ui/charts.mjs';
@@ -154,6 +155,7 @@ document.addEventListener('click', event => {
   if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
   if (target.dataset.sort) { state.tracks.sort = target.dataset.sort; state.tracks.page = 0; render(); }
   if (target.dataset.calYear) { state.calendarYear = Number(target.dataset.calYear); render(); }
+  if (target.id === 'export-csv') exportCSV();
   if (target.dataset.year) {
     state.filters.year = target.dataset.year; $('#year-filter').value = target.dataset.year;
     location.hash = '#/overview'; query();
@@ -185,6 +187,16 @@ if (!('closedBy' in HTMLDialogElement.prototype)) {
     const box = dialog.getBoundingClientRect();
     if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
   }));
+}
+
+// Every track for the current year and play-length filters. The search box doesn't limit it.
+function exportCSV() {
+  if (!state.stats) return;
+  const url = URL.createObjectURL(new Blob([toCSV(state.stats.tracks)], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url; link.download = `afterglow-${state.isDemo ? 'sample-' : ''}${state.filters.year}-tracks.csv`; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notify(`Exported ${plural(state.stats.tracks.length, 'track')} for ${state.filters.year === 'all' ? 'all time' : state.filters.year}.`);
 }
 
 /* ---------- Import ---------- */

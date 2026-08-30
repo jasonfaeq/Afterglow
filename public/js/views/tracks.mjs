@@ -24,7 +24,8 @@ const rows = (list, offset) => list.map((t, i) => `<tr>
 export const render = () => `<section class="panel tracks-panel">
   <div class="toolbar">
     <label class="search">${icon('search')}<input type="search" id="track-search" placeholder="Search tracks, artists or albums" aria-label="Search tracks" value="${escape(state.tracks.search)}" autocomplete="off" spellcheck="false"></label>
-    ${segmented('Sort tracks by', Object.entries(SORTS), state.tracks.sort, 'data-sort')}
+    <div class="toolbar-end">${segmented('Sort tracks by', Object.entries(SORTS), state.tracks.sort, 'data-sort')}
+      <button class="btn btn-ghost btn-sm" id="export-csv" title="Every track for the current year and play length filters"><span data-icon="download"></span>Export CSV</button></div>
   </div>
   <div class="table-wrap"><table class="track-table">
     <thead><tr><th class="num">#</th><th>Track</th><th class="col-album">Album</th><th class="num">Plays</th><th class="num">Time</th><th class="num col-first">First heard</th></tr></thead>

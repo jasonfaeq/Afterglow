@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, mergeRows, aggregate, artistDetail, demoRows } from '../public/js/core.mjs';
+import { normalize, mergeRows, aggregate, artistDetail, demoRows, toCSV } from '../public/js/core.mjs';
 
 const event = (overrides = {}) => ({
   ts: '2024-01-01T15:30:00Z', ms_played: 180000,
@@ -125,6 +125,14 @@ test('artist detail matches the dashboard totals for the same filters', () => {
   assert.equal(detail.timeline.reduce((sum, m) => sum + m.ms, 0), top.ms);
   assert.equal(detail.hours.reduce((a, b) => a + b, 0), top.ms);
   assert.ok(Math.abs(detail.share - top.ms / stats.ms) < 1e-9);
+});
+
+test('CSV export handles quotes, commas, line breaks and formula injection', () => {
+  const csv = toCSV([{ name: '=1+1', artist: 'A,"B"', album: 'Line\nbreak', plays: 2, ms: 120000, first: Date.parse('2024-05-01T10:00:00Z') }]);
+  assert.ok(csv.startsWith('﻿"Track","Artist","Album","Plays","Minutes","First heard"'));
+  assert.ok(csv.includes('"\'=1+1"')); assert.ok(csv.includes('"A,""B"""'));
+  assert.ok(csv.includes('"2.00"')); assert.ok(csv.includes('"2024-05-01"'));
+  assert.ok(toCSV([{ name: ' =SUM(A1)', plays: 1, ms: 0 }]).includes('"\' =SUM(A1)"'));
 });
 
 test('a filter with no matches returns an empty dashboard without NaN or infinite dates', () => {

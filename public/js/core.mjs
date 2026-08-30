@@ -265,6 +265,18 @@ export function artistDetail(rows, name, { year = 'all', minimum = 30000, utc = 
     known, skips, tracks: rank(tracks).slice(0, 10), albums: rank(albums).slice(0, 6), timeline: keys.map(key => ({ key, ms: months.get(key) ?? 0 })), hours, weekdays };
 }
 
+// Spreadsheet-safe CSV: quotes everything, and defuses cells that would run as formulas.
+export function toCSV(entries) {
+  const quote = value => {
+    let s = String(value ?? '');
+    if (/^(?:\s*[=+\-@]|[\t\r\n])/.test(s)) s = `'${s}`;
+    return `"${s.replaceAll('"', '""')}"`;
+  };
+  const header = ['Track', 'Artist', 'Album', 'Plays', 'Minutes', 'First heard'];
+  const body = entries.map(x => [x.name, x.artist, x.album, x.plays, (x.ms / 60000).toFixed(2), x.first ? new Date(x.first).toISOString().slice(0, 10) : '']);
+  return '﻿' + [header, ...body].map(row => row.map(quote).join(',')).join('\r\n');
+}
+
 /* ---------- Sample library ---------- */
 // A made-up listener, so the dashboard has something to show before an import.
 // Every artist, album and track below is fictional. `joins` is the day (from Jan 1, 2024) they were first heard.
