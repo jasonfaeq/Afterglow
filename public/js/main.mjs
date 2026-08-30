@@ -1,5 +1,5 @@
 import { state } from './state.mjs';
-import { $, $$, number, plural, formatDate, hours } from './lib/format.mjs';
+import { $, $$, number, plural, formatDate, hours, useUTC } from './lib/format.mjs';
 import { hydrateIcons } from './lib/icons.mjs';
 import { drawCharts } from './ui/charts.mjs';
 import { installTooltip } from './ui/tooltip.mjs';
@@ -44,7 +44,31 @@ function setBusy(value) {
   $('#drop-zone').classList.toggle('busy', value);
   $('#file-input').disabled = value;
   $('#import-progress').hidden = !value;
-  $('#year-filter').disabled = value;
+  $$('#year-filter, #minimum-filter, #timezone-filter, #clear-data').forEach(el => { el.disabled = value; });
+  if (!value) $('#clear-data').disabled = state.isDemo;
+}
+function updateLibrary() {
+  const years = state.stats?.years ?? [], span = years.length ? `${Math.min(...years)}${years.length > 1 ? `–${Math.max(...years)}` : ''}` : '';
+  $('#library-details').textContent = state.isDemo
+    ? 'You’re exploring the made-up sample library. Import your own history to replace it.'
+    : `${plural(state.files.length, 'file')} imported${span ? `, covering ${span}` : ''}. Saved in this browser only.`;
+  $('#clear-data').disabled = state.isDemo || state.busy;
+}
+
+// Play length and time zone are remembered between visits.
+const SETTINGS = 'afterglow.settings';
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS) ?? '{}');
+    if ([0, 30000, 60000].includes(saved.minimum)) state.filters.minimum = saved.minimum;
+    if (typeof saved.utc === 'boolean') state.filters.utc = saved.utc;
+  } catch { /* Storage can be blocked; the defaults are fine. */ }
+  $('#minimum-filter').value = String(state.filters.minimum);
+  $('#timezone-filter').value = state.filters.utc ? 'utc' : 'local';
+  useUTC(state.filters.utc);
+}
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS, JSON.stringify({ minimum: state.filters.minimum, utc: state.filters.utc })); } catch { /* This visit still uses them. */ }
 }
 function showError(message) {
   $('#import-error').textContent = message; $('#import-error').hidden = false;
@@ -70,9 +94,11 @@ worker.onmessage = ({ data }) => {
     setBusy(false); $('#import-dialog').close();
     notify(`Your library is ready: ${plural(data.stats.plays, 'play')} from ${plural(data.files.length, 'file')}${data.duplicates ? `, ${number(data.duplicates)} duplicates skipped` : ''}${data.enriched ? `, ${number(data.enriched)} older plays gained skip & shuffle details` : ''}.${data.persisted ? '' : ' Browser storage is unavailable, so this lasts for this visit only.'}`);
   }
+  if (data.cleared) { setBusy(false); notify('Your imported history has been deleted from this browser.'); }
   state.stats = data.stats;
   syncYears();
-  render({ animate: firstRender || data.type === 'imported' });
+  updateLibrary();
+  render({ animate: firstRender || data.type === 'imported' || data.cleared });
   firstRender = false;
 };
 worker.onerror = () => {
@@ -122,6 +148,8 @@ document.addEventListener('click', event => {
   const target = event.target.closest('button, a');
   if (!target) return;
   if (target.matches('.import-trigger')) { $('#import-error').hidden = true; showDialog('#import-dialog'); return; }
+  if (target.matches('.settings-trigger')) { showDialog('#settings-dialog'); return; }
+  if (target.matches('.guide-trigger')) { showDialog('#guide-dialog'); return; }
   if (target.matches('.close-dialog')) target.closest('dialog')?.close();
   if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
   if (target.dataset.sort) { state.tracks.sort = target.dataset.sort; state.tracks.page = 0; render(); }
@@ -143,6 +171,14 @@ document.addEventListener('input', event => {
 });
 window.addEventListener('hashchange', () => { route(); render({ animate: true }); window.scrollTo({ top: 0 }); });
 $('#year-filter').addEventListener('change', event => { state.filters.year = event.target.value; query(); });
+$('#minimum-filter').addEventListener('change', event => { state.filters.minimum = Number(event.target.value); saveSettings(); query(); });
+$('#timezone-filter').addEventListener('change', event => { state.filters.utc = event.target.value === 'utc'; useUTC(state.filters.utc); saveSettings(); query(); });
+$('#clear-data').addEventListener('click', () => {
+  if (state.busy || state.isDemo) return;
+  if (!confirm('Delete the imported history saved in this browser? Your original Spotify files won’t be affected.')) return;
+  state.filters.year = 'all'; setBusy(true);
+  worker.postMessage({ type: 'clear', filters: state.filters });
+});
 if (!('closedBy' in HTMLDialogElement.prototype)) {
   $$('dialog').forEach(dialog => dialog.addEventListener('click', event => {
     if (event.target !== dialog) return;
@@ -170,6 +206,7 @@ window.addEventListener('dragover', event => { if (hasFiles(event)) event.preven
 window.addEventListener('drop', event => { if (hasFiles(event) && !event.target.closest?.('#drop-zone')) { event.preventDefault(); importFiles(event.dataTransfer.files); } });
 
 route();
+loadSettings();
 hydrateIcons();
 installTooltip();
 $('#dashboard').innerHTML = '<div class="loading"><span class="spinner"></span>Finding your rhythm…</div>';

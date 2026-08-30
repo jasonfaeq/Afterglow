@@ -27,6 +27,7 @@
     </nav>
     <div class="topbar-actions">
       <button class="btn btn-soft btn-sm import-trigger"><span data-icon="upload"></span>Import</button>
+      <button class="icon-btn settings-trigger" aria-label="Settings"><span data-icon="settings"></span></button>
     </div>
   </header>
 
@@ -44,6 +45,7 @@
       </div>
       <div class="page-filters">
         <select class="select" id="year-filter" aria-label="Listening year"><option value="all">All time</option></select>
+        <button class="icon-btn outlined settings-trigger" aria-label="Listening filters"><span data-icon="sliders"></span></button>
       </div>
     </section>
     <div id="dashboard" aria-live="polite"></div>
@@ -51,6 +53,7 @@
       <span class="footer-brand">afterglow<b>.</b></span>
       <span>A little perspective on everything you listen to.</span>
       <span>Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
+      <button class="link guide-trigger">About your data <span data-icon="external"></span></button>
     </footer>
   </main>
 
@@ -67,6 +70,33 @@
     <div class="import-progress" id="import-progress" hidden><span class="spinner"></span><span id="progress-text">Reading…</span></div>
     <p class="error" id="import-error" role="alert" hidden></p>
     <p class="dialog-note"><span data-icon="shield"></span><span>Everything is processed on this device and saved in this browser only. Importing more files later adds to your library without double-counting.</span></p>
+    <div class="dialog-foot"><button class="link guide-trigger">Don’t have your export yet? <span data-icon="arrow"></span></button></div>
+  </dialog>
+
+  <dialog id="settings-dialog" class="dialog" closedby="any" aria-labelledby="settings-title">
+    <header class="dialog-head"><span class="eyebrow">The finer details</span><button class="icon-btn close-dialog" aria-label="Close"><span data-icon="close"></span></button></header>
+    <h2 class="dialog-title" id="settings-title">Your listening, <em>your way.</em></h2>
+    <div class="settings">
+      <div class="setting"><div><strong>Count a play after</strong><p>Applies to every chart and ranking. Skip and shuffle stats always include short plays.</p></div>
+        <select class="select" id="minimum-filter" aria-label="Minimum play length"><option value="30000">30 seconds</option><option value="0">Any length</option><option value="60000">1 minute</option></select></div>
+      <div class="setting"><div><strong>Time zone</strong><p>Used for days, hours and years.</p></div>
+        <select class="select" id="timezone-filter" aria-label="Time zone"><option value="local">This device</option><option value="utc">UTC</option></select></div>
+      <div class="setting"><div><strong>Your library</strong><p id="library-details">You’re exploring the sample library.</p></div></div>
+      <div class="setting danger"><div><strong>Delete imported history</strong><p>Removes the library saved in this browser. Your export files aren’t touched.</p></div><button class="btn btn-danger btn-sm" id="clear-data">Delete library</button></div>
+    </div>
+    <p class="fine-print">Music only: podcasts, audiobooks, IP addresses, devices and account details are never kept. Rankings use listening time, and each play counts at the moment Spotify says it ended.</p>
+  </dialog>
+
+  <dialog id="guide-dialog" class="dialog" closedby="any" aria-labelledby="guide-title">
+    <header class="dialog-head"><span class="eyebrow">Good things take a little history</span><button class="icon-btn close-dialog" aria-label="Close"><span data-icon="close"></span></button></header>
+    <h2 class="dialog-title" id="guide-title">Get your <em>listening history.</em></h2>
+    <ol class="steps">
+      <li><span>01</span><div><strong>Request your Spotify data</strong><p>On Spotify’s account privacy page, ask for <b>Extended streaming history</b>. It covers your whole account, skips and shuffle included.</p><a class="link" href="https://www.spotify.com/account/privacy/" target="_blank" rel="noopener noreferrer">Open Spotify privacy settings <span data-icon="external"></span></a></div></li>
+      <li><span>02</span><div><strong>Wait for the email</strong><p>Spotify prepares the export and emails you a download link. It can take a few days.</p></div></li>
+      <li><span>03</span><div><strong>Drop it in here</strong><p>Import the ZIP as it is, or the <code>Streaming_History_Audio_*.json</code> files inside. The shorter account data export (<code>StreamingHistory*.json</code>) works too.</p></div></li>
+    </ol>
+    <p class="dialog-note"><span data-icon="shield"></span><span>No Spotify login, no uploads, no tracking. Your history is read on this device.</span></p>
+    <div class="dialog-foot"><button class="btn btn-primary import-trigger"><span data-icon="upload"></span>I have my export</button></div>
   </dialog>
 
   <dialog id="detail-dialog" class="dialog dialog-wide" closedby="any" aria-label="Details"><div id="detail-body"></div></dialog>

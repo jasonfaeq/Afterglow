@@ -128,6 +128,11 @@ async function handle(data) {
       rows = merged.rows; files = nextFiles; isDemo = false;
       post('imported', { isDemo, files, persisted, duplicates: merged.duplicates, enriched: merged.enriched, ignored, stats: aggregate(rows, data.filters) });
     }
+    if (data.type === 'clear') {
+      await storage('delete');
+      rows = demoRows(); files = []; isDemo = true;
+      post('ready', { isDemo, files, cleared: true, stats: aggregate(rows, data.filters) });
+    }
   } catch (error) {
     post('error', { message: error instanceof SyntaxError ? 'A file contains invalid JSON. Your library is unchanged.' : error.message });
   }
