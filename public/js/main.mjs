@@ -10,6 +10,7 @@ import * as tracks from './views/tracks.mjs';
 import * as habits from './views/habits.mjs';
 import * as years from './views/years.mjs';
 import { artistView, loadingDetail } from './dialogs/details.mjs';
+import { installArtwork } from './artwork/ui.mjs';
 
 const VIEWS = { overview, artists, tracks, habits, years };
 const TITLES = {
@@ -90,7 +91,7 @@ worker.onmessage = ({ data }) => {
   }
   if (data.type === 'stats' && data.id !== queryId) return;
   if (data.files) state.files = data.files;
-  if ('isDemo' in data) { state.isDemo = data.isDemo; $('#demo-banner').hidden = !state.isDemo; }
+  if ('isDemo' in data) { state.isDemo = data.isDemo; $('#demo-banner').hidden = !state.isDemo; document.body.classList.toggle('is-demo', state.isDemo); }
   if (data.type === 'imported') {
     setBusy(false); $('#import-dialog').close();
     notify(`Your library is ready: ${plural(data.stats.plays, 'play')} from ${plural(data.files.length, 'file')}${data.duplicates ? `, ${number(data.duplicates)} duplicates skipped` : ''}${data.enriched ? `, ${number(data.enriched)} older plays gained skip & shuffle details` : ''}.${data.persisted ? '' : ' Browser storage is unavailable, so this lasts for this visit only.'}`);
@@ -221,5 +222,6 @@ route();
 loadSettings();
 hydrateIcons();
 installTooltip();
+installArtwork();
 $('#dashboard').innerHTML = '<div class="loading"><span class="spinner"></span>Finding your rhythm…</div>';
 worker.postMessage({ type: 'init', filters: state.filters });

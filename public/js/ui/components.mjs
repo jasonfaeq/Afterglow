@@ -1,3 +1,4 @@
+import { state } from '../state.mjs';
 import { icon } from '../lib/icons.mjs';
 import { escape } from '../lib/format.mjs';
 
@@ -11,7 +12,12 @@ export function artColors(name) {
 export function art(kind, item, size = 'sm') {
   const label = kind === 'track' ? item.album || item.name : item.name;
   const [c1, c2] = artColors(`${item.artist ?? ''}${label}`);
-  return `<span class="art art-${size} art-${kind}" style="--c1:${c1};--c2:${c2}" aria-hidden="true"><span class="art-initial">${escape([...label][0] ?? '♪')}</span></span>`;
+  const cls = `art art-${size} art-${kind}`, style = `--c1:${c1};--c2:${c2}`, inner = `<span class="art-initial">${escape([...label][0] ?? '♪')}</span>`;
+  if (state.isDemo) return `<span class="${cls}" style="${style}" aria-hidden="true">${inner}</span>`;
+  // In an imported library, tiles can pick up real covers. Those always link back to Spotify.
+  const search = `https://open.spotify.com/search/${encodeURIComponent(kind === 'artist' ? item.name : `${item.name} ${item.artist ?? ''}`.trim())}`;
+  return `<a class="${cls}" style="${style}" href="${escape(search)}" target="_blank" rel="noopener noreferrer" title="Find ${escape(item.name)} on Spotify" aria-label="Find ${escape(item.name)} on Spotify"
+    data-art-kind="${kind}" data-art-name="${escape(item.name)}" data-art-artist="${escape(kind === 'artist' ? '' : item.artist ?? '')}" data-art-album="${escape(kind === 'track' ? item.album ?? '' : '')}" data-art-uri="${escape(item.uri ?? '')}" data-art-fallback="${escape(search)}">${inner}</a>`;
 }
 
 // Anything with data-open opens a detail dialog.

@@ -8,6 +8,10 @@
 .art-lg { --size: 96px; border-radius: 12px; }
 .art-xl { --size: 152px; border-radius: 16px; }
 .art-artist.art-xs, .art-artist.art-md, .art-artist.art-lg, .art-artist.art-xl { border-radius: 50%; }
+.art .art-real { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .45s ease; }
+.art.has-artwork .art-real { opacity: 1; }
+a.art { transition: transform .25s var(--ease), box-shadow .25s; }
+a.art:hover { transform: scale(1.04); }
 .art-fill { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; }
 .art-fill .art-initial { font-size: 72px; }
 

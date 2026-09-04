@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SpotifyCatalog } from '../server/spotify-catalog.mjs';
+import { ArtworkClient } from '../public/js/artwork/client.mjs';
 import { artworkFrom, artworkKey, safeImageURL, validateArtworkSpec } from '../public/js/artwork/shared.mjs';
 
 const ID = 'B'.repeat(22), CLIENT = 'a'.repeat(32), SECRET = 'server-only-secret';
@@ -132,6 +133,55 @@ test('a global request budget bounds catalog traffic independently of cache hits
   await catalog.lookup(spec);
   await assert.rejects(catalog.lookup({ ...spec, uri: `spotify:track:${'C'.repeat(22)}` }), error => error.status === 429);
   assert.deepEqual(await catalog.lookup(spec), art); assert.equal(calls, 1);
+});
+
+test('the browser sends only same-origin catalog metadata, without credentials, and deduplicates lookups', async () => {
+  const calls = [];
+  const client = new ArtworkClient({ fetch: async (url, options) => {
+    calls.push({ url, options });
+    assert.equal(options.credentials, 'omit'); assert.equal(options.headers?.Authorization, undefined);
+    return response(url.endsWith('/status') ? { available: true } : { artwork: art });
+  } });
+  assert.equal(await client.lookup(spec), null); assert.equal(calls.length, 0);
+  assert.equal(await client.checkStatus(), true);
+  assert.deepEqual(await Promise.all([client.lookup(spec), client.lookup(spec)]), [art, art]);
+  await client.lookup(spec);
+  assert.deepEqual(calls.map(x => x.url), ['/api/artwork/status', '/api/artwork']);
+  assert.deepEqual(JSON.parse(calls[1].options.body), spec);
+  await assert.rejects(client.lookup({ ...spec, history: [] }));
+});
+
+test('the default fetch keeps its global receiver', async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = function () { assert.equal(this, globalThis); return Promise.resolve(response({ available: true })); };
+    assert.equal(await new ArtworkClient().checkStatus(), true);
+  } finally { globalThis.fetch = original; }
+});
+
+test('the browser honours server cooldowns and rejects unsafe artwork responses', async () => {
+  let clock = 100000, calls = 0;
+  const client = new ArtworkClient({ now: () => clock, fetch: async url => {
+    if (url.endsWith('/status')) return response({ available: true });
+    calls++; return response({ error: SECRET }, 429, { 'Retry-After': '10' });
+  } });
+  await client.checkStatus();
+  await assert.rejects(client.lookup(spec), error => !error.message.includes(SECRET) && error.retryAfter === 10);
+  await assert.rejects(client.lookup(spec), /break/); assert.equal(calls, 1);
+  clock += 10001; await assert.rejects(client.lookup(spec)); assert.equal(calls, 2);
+  const unsafe = new ArtworkClient({ fetch: async url => response(url.endsWith('/status') ? { available: true } : { artwork: { image: 'https://evil.test/track', href: art.href } }) });
+  await unsafe.checkStatus(); await assert.rejects(unsafe.lookup(spec), /unavailable/);
+});
+
+test('turning artwork off cancels pending lookups, and a late answer cannot sneak back into the cache', async () => {
+  let finish, signal;
+  const client = new ArtworkClient({ fetch: async (url, options) => {
+    if (url.endsWith('/status')) return response({ available: true });
+    signal = options.signal; return new Promise(resolve => { finish = resolve; });
+  } });
+  await client.checkStatus(); const request = client.lookup(spec); await Promise.resolve();
+  client.cancel(); assert.ok(signal.aborted); finish(response({ artwork: art }));
+  assert.equal(await request, null); assert.equal(client.cache.size, 0); assert.equal(client.available, false);
 });
 
 test('only Spotify https image hosts and validated source links are accepted', () => {
