@@ -23,4 +23,12 @@ The browser only sends what's needed to find a picture: a kind (`track`, `album`
 - Results are cached in memory for everyone: up to 5,000 entries, six hours for hits and 30 minutes for misses. Identical lookups in flight share one request.
 - Spotify's rate limits and quota cooldowns are respected, and the server caps itself at 120 catalog requests a minute.
 
+## Limits and hosting
+
+The API only answers this site's own pages: cross-site requests and foreign `Origin` headers get a 403. Bodies are capped at 4 KB, and each connecting address gets 120 lookups a minute. `X-Forwarded-For` is ignored on purpose, so behind a reverse proxy every visitor shares the proxy's budget. All of these limits live in memory, per server process.
+
+To host it, run `node server.mjs` as a long-running Node service. Behind a platform or reverse proxy, set `HOST=0.0.0.0`, the assigned `PORT`, and **`PUBLIC_ORIGIN=https://your-site.example`**, and terminate HTTPS at the proxy. The pages and `/api/artwork` must share one origin, so a static host like GitHub Pages can't run the artwork part. Without credentials, everything else still works.
+
+Spotify's [quota and access rules](https://developer.spotify.com/documentation/web-api/concepts/quota-modes) and [design guidelines](https://developer.spotify.com/documentation/design) still apply to your app.
+
 [Back to afterglow](../README.md)

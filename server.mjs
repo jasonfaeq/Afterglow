@@ -31,20 +31,37 @@ async function readBody(request) {
       catch { reject(new ArtworkError('Artwork request must be valid JSON.', 400)); }
     });
     request.once('error', () => reject(new ArtworkError('Artwork request could not be read.', 400)));
+    request.once('aborted', () => reject(new ArtworkError('Artwork request was interrupted.', 400)));
   });
 }
 
-export function createAfterglowServer({ catalog = catalogFromEnv() } = {}) {
-  return createServer(async (request, response) => {
+export function createAfterglowServer({ catalog = catalogFromEnv(), publicOrigin = process.env.PUBLIC_ORIGIN || '', perIPLimit = 120, now = Date.now } = {}) {
+  const visitors = new Map();
+  // A small in-memory budget per connecting address. Forwarded-IP headers are deliberately not trusted.
+  function overBudget(address) {
+    let budget = visitors.get(address);
+    if (!budget || now() - budget.start >= 60000) {
+      if (visitors.size >= 10000) for (const [key, entry] of visitors) if (now() - entry.start >= 60000) visitors.delete(key);
+      if (visitors.size >= 10000 && !visitors.has(address)) return 60;
+      budget = { start: now(), used: 0 }; visitors.set(address, budget);
+    }
+    return ++budget.used > perIPLimit ? Math.max(1, Math.ceil((budget.start + 60000 - now()) / 1000)) : 0;
+  }
+  return createServer({ requestTimeout: 15000, headersTimeout: 10000, maxHeaderSize: 8192 }, async (request, response) => {
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Referrer-Policy', 'no-referrer');
     try {
       const url = new URL(request.url, 'http://afterglow.invalid');
       if (url.pathname.startsWith('/api/')) {
+        // Only this site's own pages may use the API.
+        const origin = publicOrigin || `http://${request.headers.host}`;
+        if (request.headers['sec-fetch-site'] === 'cross-site' || (request.headers.origin && request.headers.origin !== origin)) return json(response, 403, { error: 'Artwork requests must come from this site.' });
         if (url.pathname === '/api/artwork/status' && request.method === 'GET') return json(response, 200, catalog.status());
         if (url.pathname !== '/api/artwork') return json(response, 404, { error: 'Not found.' });
         if (request.method !== 'POST') return json(response, 405, { error: 'Use POST for artwork lookups.' }, { Allow: 'POST' });
         if (!/^application\/json(?:\s*;|$)/i.test(request.headers['content-type'] ?? '')) return json(response, 415, { error: 'Artwork requests must use application/json.' });
+        const wait = overBudget(request.socket.remoteAddress);
+        if (wait) return json(response, 429, { error: 'Artwork is busy. Try again shortly.' }, { 'Retry-After': String(wait) });
         const spec = validateArtworkSpec(await readBody(request));
         return json(response, 200, { artwork: await catalog.lookup(spec) });
       }
