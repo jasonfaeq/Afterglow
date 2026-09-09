@@ -14,7 +14,7 @@ export function installArtwork({ client = new ArtworkClient() } = {}) {
 
   function status() {
     $('#artwork-status').textContent = !enabled ? 'Artwork is off. Nothing is looked up.' : client.problem ||
-      (!ready ? 'Checking artwork…' : client.available ? 'Covers and artist photos load as you browse.' : 'Catalog artwork isn’t set up on this server, so tiles show their initials.');
+      (!ready ? 'Checking artwork…' : client.available ? 'Covers and artist photos load as you browse.' : 'Catalog artwork isn’t set up on this server, so you’ll see generated covers.');
     $('#artwork-retry').hidden = !enabled || !client.problem;
     $('#artwork-attribution').hidden = !enabled || !client.available;
   }
@@ -30,7 +30,13 @@ export function installArtwork({ client = new ArtworkClient() } = {}) {
     tile.href = art.href; tile.title = `Open ${tile.dataset.artName} on Spotify`; tile.setAttribute('aria-label', tile.title);
     const image = new Image();
     Object.assign(image, { alt: '', loading: 'lazy', decoding: 'async', referrerPolicy: 'no-referrer', className: 'art-real' });
-    image.addEventListener('load', () => { if (enabled && tile.contains(image)) tile.classList.add('has-artwork'); }, { once: true });
+    image.addEventListener('load', () => {
+      if (!enabled || !tile.contains(image)) return;
+      tile.classList.add('has-artwork');
+      // Big headers glow with the real cover once it's here.
+      const glow = tile.closest('[data-backdrop-host]')?.querySelector(':scope > .backdrop');
+      if (glow) glow.src = art.image;
+    }, { once: true });
     image.addEventListener('error', () => { image.remove(); tile.classList.remove('has-artwork'); }, { once: true });
     tile.querySelector('img.art-real')?.remove(); tile.append(image); image.src = art.image;
   }

@@ -84,6 +84,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   server.on('error', error => { console.error(error.code === 'EADDRINUSE' ? `Port ${port} is already in use. Stop the other server or set PORT.` : 'afterglow could not start its server.'); process.exitCode = 1; });
   server.listen(port, host, () => {
     console.log(`afterglow is running at http://${host}:${server.address().port}`);
-    console.log(catalog.configured ? 'Cover art from the Spotify catalog is on.' : 'No Spotify credentials in .env, so artwork is off. See docs/ARTWORK_SETUP.md.');
+    console.log(catalog.configured ? 'Cover art from the Spotify catalog is on.' : 'No Spotify credentials in .env, so imported libraries get generated covers. See docs/ARTWORK_SETUP.md.');
   });
 }

@@ -1,14 +1,14 @@
 import { state, periodLabel } from '../state.mjs';
 import { escape, number, decimal, percent, hours, duration, clockDuration, plural, DAY, monthLabel, formatDate, dayLabel } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, segmented, art, artColors, dayparts, openAttrs, artistLink } from '../ui/components.mjs';
+import { panel, segmented, art, coverColors, backdrop, dayparts, openAttrs, artistLink } from '../ui/components.mjs';
 import { chart, areaChart, sparkline } from '../ui/charts.mjs';
 
 function spotlight(stats) {
   const top = stats.artists[0], track = stats.tracks.find(t => t.artist === top.name);
-  const [c1, c2] = artColors(top.name);
-  return `<section class="spotlight span-7" style="--c1:${c1};--c2:${c2}">
-    ${art('artist', top, 'xl')}
+  const [c1, c2] = coverColors('artist', top);
+  return `<section class="spotlight span-7" style="--c1:${c1};--c2:${c2}" data-backdrop-host>
+    ${backdrop('artist', top)}${art('artist', top, 'xl')}
     <div class="spotlight-body">
       <span class="eyebrow">Your #1 artist · ${periodLabel()}</span>
       <h2 class="spotlight-name">${artistLink(top.name)}</h2>

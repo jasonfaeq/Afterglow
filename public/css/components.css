@@ -1,7 +1,8 @@
 /* Art tiles: covers for albums and tracks, round portraits for artists. */
-.art { --size: 44px; position: relative; display: inline-grid; place-items: center; flex-shrink: 0; width: var(--size); height: var(--size); overflow: hidden; border-radius: 8px; background: linear-gradient(135deg, var(--c1), var(--c2)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), 0 10px 22px -12px rgba(0, 0, 0, .9); isolation: isolate; }
+.art { --size: 44px; position: relative; display: inline-block; flex-shrink: 0; width: var(--size); height: var(--size); overflow: hidden; border-radius: 8px; background: var(--surface-2); box-shadow: 0 10px 22px -12px rgba(0, 0, 0, .9); isolation: isolate; }
+.art::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .09); pointer-events: none; }
 .art-artist { border-radius: 50%; }
-.art-initial { font: 400 calc(var(--size) * .46)/1 var(--serif); color: rgba(255, 255, 255, .94); text-shadow: 0 1px 10px rgba(0, 0, 0, .25); }
+.art .art-gen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .art-xs { --size: 34px; border-radius: 6px; }
 .art-sm { --size: 44px; }
 .art-md { --size: 60px; border-radius: 10px; }
@@ -13,12 +14,13 @@
 a.art { transition: transform .25s var(--ease), box-shadow .25s; }
 a.art:hover { transform: scale(1.04); }
 .art-fill { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; }
-.art-fill .art-initial { font-size: 72px; }
+.backdrop { position: absolute; inset: -25%; z-index: -2; width: 150%; height: 150%; object-fit: cover; filter: blur(60px) saturate(1.5); opacity: .5; pointer-events: none; }
 
 /* The #1 artist, lit by its own colours. */
 .spotlight { position: relative; overflow: hidden; display: flex; align-items: center; gap: 30px; min-width: 0; padding: 30px; border-radius: var(--radius); border: 1px solid var(--line); background: #141019; isolation: isolate; box-shadow: var(--shadow); }
-.spotlight::before { content: ''; position: absolute; inset: -30%; z-index: -1; background: radial-gradient(closest-side at 22% 50%, var(--c1), transparent), radial-gradient(closest-side at 72% 64%, var(--c2), transparent); opacity: .3; filter: blur(40px); }
-.spotlight::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, transparent 30%, rgba(10, 9, 16, .55)); }
+.spotlight::before { content: ''; position: absolute; inset: -30%; z-index: -3; background: radial-gradient(closest-side at 22% 50%, var(--c1), transparent), radial-gradient(closest-side at 72% 64%, var(--c2), transparent); opacity: .22; filter: blur(40px); }
+.spotlight::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(10, 9, 16, .1) 20%, rgba(10, 9, 16, .62)); }
+.spotlight .art-xl { box-shadow: 0 30px 60px -24px rgba(0, 0, 0, .95); }
 .spotlight-body { display: grid; gap: 10px; min-width: 0; }
 .spotlight-name { font: 400 clamp(34px, 4vw, 50px)/1.02 var(--serif); letter-spacing: -.02em; overflow-wrap: anywhere; }
 .spotlight-stats { font-size: 15px; color: var(--ink-2); }
@@ -108,7 +110,7 @@ a.art:hover { transform: scale(1.04); }
 .album-cover { position: relative; margin-bottom: 10px; transition: transform .35s var(--ease); }
 .album-card:hover .album-cover { transform: translateY(-4px); }
 .album-cover .art { box-shadow: 0 24px 40px -22px rgba(0, 0, 0, .95), inset 0 0 0 1px rgba(255, 255, 255, .08); }
-.album-rank { position: absolute; top: 10px; left: 10px; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: rgba(10, 9, 16, .72); backdrop-filter: blur(8px); font-size: 12px; font-weight: 700; }
+.album-rank { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: rgba(10, 9, 16, .72); backdrop-filter: blur(8px); font-size: 12px; font-weight: 700; }
 .album-card h3 { overflow: hidden; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .album-card p { overflow: hidden; color: var(--ink-2); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .album-hours { color: var(--ink-3); font-size: 12.5px; }

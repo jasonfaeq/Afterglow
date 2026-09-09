@@ -44,7 +44,9 @@
 .dialog-wide .loading { padding: 120px 0; }
 .detail-close { position: absolute; top: 18px; right: 18px; z-index: 2; background: rgba(10, 9, 16, .35); }
 .detail-hero { position: relative; display: flex; align-items: center; gap: 28px; padding: 34px 34px 30px; overflow: hidden; isolation: isolate; border-bottom: 1px solid var(--line); }
-.detail-hero::before { content: ''; position: absolute; inset: -40%; z-index: -1; background: radial-gradient(closest-side at 18% 45%, var(--c1), transparent), radial-gradient(closest-side at 70% 30%, var(--c2), transparent); opacity: .34; filter: blur(50px); }
+.detail-hero::before { content: ''; position: absolute; inset: -40%; z-index: -3; background: radial-gradient(closest-side at 18% 45%, var(--c1), transparent), radial-gradient(closest-side at 70% 30%, var(--c2), transparent); opacity: .24; filter: blur(50px); }
+.detail-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(17, 14, 23, .05), rgba(17, 14, 23, .55)); }
+.detail-hero .art { box-shadow: 0 24px 50px -20px rgba(0, 0, 0, .95); }
 .detail-heading { display: grid; gap: 8px; min-width: 0; padding-right: 40px; }
 .detail-title { font: 400 clamp(32px, 5vw, 48px)/1.04 var(--serif); letter-spacing: -.02em; overflow-wrap: anywhere; }
 .detail-heading p { color: var(--ink-2); font-size: 13.5px; }
