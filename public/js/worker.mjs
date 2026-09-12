@@ -1,8 +1,17 @@
 import { normalize, mergeRows, aggregate, artistDetail, demoRows } from './core.mjs';
 
-// Until something is imported, the dashboard runs on the fictional sample library.
-let rows = [], files = [], isDemo = true;
+// Two libraries live here: the one you imported (if any) and the made-up sample.
+// The page decides which one it's looking at; imports only ever touch yours.
+let library = null, sample = null, mode = 'demo';
 const post = (type, payload = {}) => self.postMessage({ type, ...payload });
+const demo = () => sample ??= demoRows();
+const rows = () => mode === 'library' && library ? library.rows : demo();
+const summary = () => library && { plays: library.rows.length, files: library.files.length, from: library.rows[0]?.ts ?? null, to: library.rows.at(-1)?.ts ?? null };
+// A few facts about the sample listener for the homepage.
+function teaser() {
+  const s = aggregate(demo(), { minimum: 30000 });
+  return { hours: Math.round(s.ms / 3600000), artists: s.artistCount, topArtist: s.artists[0]?.name ?? '', streak: s.streak?.days ?? 0, since: s.start };
+}
 
 // The whole normalized library lives in a single IndexedDB record.
 const database = () => new Promise((resolve, reject) => {
@@ -110,28 +119,27 @@ async function handle(data) {
     if (data.type === 'init') {
       let saved;
       try { saved = await storage('get'); } catch { /* Private windows can block storage. */ }
-      if (saved?.rows?.length) { rows = saved.rows; files = saved.files ?? []; isDemo = false; }
-      else rows = demoRows();
-      post('ready', { isDemo, files, stats: aggregate(rows, data.filters) });
+      if (saved?.rows?.length) library = { rows: saved.rows, files: saved.files ?? [] };
+      post('ready', { library: summary(), teaser: teaser() });
     }
-    if (data.type === 'query') post('stats', { id: data.id, stats: aggregate(rows, data.filters) });
-    if (data.type === 'detail') post('detail', { id: data.id, kind: data.kind, detail: artistDetail(rows, data.name, data.filters) });
+    if (data.type === 'use') mode = data.mode === 'library' && library ? 'library' : 'demo';
+    if (data.type === 'use' || data.type === 'query') post('stats', { id: data.id, mode, stats: aggregate(rows(), data.filters) });
+    if (data.type === 'detail') post('detail', { id: data.id, kind: data.kind, detail: artistDetail(rows(), data.name, data.filters) });
     if (data.type === 'import') {
       const { incoming, added, ignored } = await readFiles(data.files);
       if (!incoming.length) throw new Error('No music listening events were found in those files.');
       post('progress', { message: 'Removing duplicates…' });
-      // The first real import replaces the sample library; later ones add to it.
-      const merged = mergeRows(isDemo ? [] : rows, incoming);
-      const nextFiles = [...new Set([...(isDemo ? [] : files), ...added])];
+      const merged = mergeRows(library?.rows ?? [], incoming);
+      const files = [...new Set([...(library?.files ?? []), ...added])];
       let persisted = true;
-      try { await storage('put', { rows: merged.rows, files: nextFiles }); } catch { persisted = false; }
-      rows = merged.rows; files = nextFiles; isDemo = false;
-      post('imported', { isDemo, files, persisted, duplicates: merged.duplicates, enriched: merged.enriched, ignored, stats: aggregate(rows, data.filters) });
+      try { await storage('put', { rows: merged.rows, files }); } catch { persisted = false; }
+      library = { rows: merged.rows, files }; mode = 'library';
+      post('imported', { mode, library: summary(), persisted, duplicates: merged.duplicates, enriched: merged.enriched, ignored, stats: aggregate(rows(), data.filters) });
     }
     if (data.type === 'clear') {
       await storage('delete');
-      rows = demoRows(); files = []; isDemo = true;
-      post('ready', { isDemo, files, cleared: true, stats: aggregate(rows, data.filters) });
+      library = null; mode = 'demo';
+      post('cleared', { library: null });
     }
   } catch (error) {
     post('error', { message: error instanceof SyntaxError ? 'A file contains invalid JSON. Your library is unchanged.' : error.message });

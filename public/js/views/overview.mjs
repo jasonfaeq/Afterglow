@@ -1,4 +1,4 @@
-import { state, periodLabel } from '../state.mjs';
+import { state, periodLabel, viewHref } from '../state.mjs';
 import { escape, number, decimal, percent, hours, duration, clockDuration, plural, DAY, monthLabel, formatDate, dayLabel } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
 import { panel, segmented, art, coverColors, backdrop, dayparts, openAttrs, artistLink } from '../ui/components.mjs';
@@ -62,7 +62,7 @@ function topArtists(stats) {
     <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('artist', a)}
     <div class="rank-main">${artistLink(a.name, 'rank-title')}<span class="rank-sub">${plural(a.plays, 'play')} · ${percent(a.ms / stats.ms, 1)} of your time</span><span class="bar"><span style="width:${a.ms / max * 100}%"></span></span></div>
     <span class="rank-value">${duration(a.ms)}</span></li>`).join('');
-  return panel('Most-played artists', 'Ranked by listening time.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: '<a class="link" href="#/artists">All artists <span data-icon="arrow"></span></a>' });
+  return panel('Most-played artists', 'Ranked by listening time.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: `<a class="link" href="${viewHref('artists')}">All artists <span data-icon="arrow"></span></a>` });
 }
 
 function topTracks(stats) {
@@ -70,7 +70,7 @@ function topTracks(stats) {
     <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('track', t)}
     <div class="rank-main"><span class="rank-title">${escape(t.name)}</span><span class="rank-sub">${artistLink(t.artist)} · ${plural(t.plays, 'play')}</span></div>
     <span class="rank-value">${duration(t.ms)}</span></li>`).join('');
-  return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: '<a class="link" href="#/tracks">All tracks <span data-icon="arrow"></span></a>' });
+  return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: `<a class="link" href="${viewHref('tracks')}">All tracks <span data-icon="arrow"></span></a>` });
 }
 
 function records(stats) {

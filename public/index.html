@@ -14,10 +14,86 @@
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/dialogs.css">
+  <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
+  <div class="home" id="home">
+    <header class="home-nav">
+      <a class="brand" href="#/" aria-label="afterglow home"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
+      <nav class="home-links" aria-label="On this page"><button data-scroll="features">What’s inside</button><button data-scroll="how">How it works</button><button data-scroll="privacy">Privacy</button></nav>
+      <div class="home-nav-actions"><button class="btn btn-ghost btn-sm import-trigger">Import</button><a class="btn btn-primary btn-sm" id="nav-primary" href="#/demo/overview">Try the demo</a></div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Welcome to afterglow.</span>
+        <h1>Every song leaves <em>an afterglow.</em></h1>
+        <p>Turn your Spotify history into a private, beautiful story of what you listen to: the artists who stay, the songs on repeat, the late nights, and how your taste moves from year to year.</p>
+        <div class="welcome-back glass" id="welcome-back" hidden></div>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="#/demo/overview"><span data-icon="play"></span>Take the demo for a spin</a>
+          <button class="btn btn-ghost btn-lg import-trigger"><span data-icon="upload"></span>Bring your own history</button>
+        </div>
+        <ul class="hero-trust"><li>No account linking</li><li>Nothing leaves your browser</li><li>Free and open source</li></ul>
+      </div>
+      <div class="hero-art" id="hero-art" aria-hidden="true"></div>
+    </section>
+
+    <section class="marquee" id="marquee" aria-label="Covers from the sample library"></section>
+
+    <section class="home-section" id="features">
+      <span class="eyebrow">What’s inside</span>
+      <h2>Your listening, <em>from every angle.</em></h2>
+      <div class="feature-grid">
+        <article class="feature"><span data-icon="overview"></span><h3>The big picture</h3><p>Hours, plays and artists, with a month-by-month story of everything you’ve played.</p></article>
+        <article class="feature"><span data-icon="artists"></span><h3>Artists &amp; albums</h3><p>Your podium, who’s rising and who’s fading, and the albums you play start to finish.</p></article>
+        <article class="feature"><span data-icon="music"></span><h3>Every track</h3><p>Search and sort every song you’ve heard, with first listens and play counts. Export it all as CSV.</p></article>
+        <article class="feature"><span data-icon="habits"></span><h3>Listening habits</h3><p>A year of days, a 24-hour clock, the shape of your week, sessions, skips and shuffle.</p></article>
+        <article class="feature"><span data-icon="calendar"></span><h3>Year by year</h3><p>Compare years side by side: hours, discoveries, days with music and each year’s favourites.</p></article>
+        <article class="feature"><span data-icon="flame"></span><h3>Records &amp; moments</h3><p>Your biggest day, longest streak, longest session, and the song you couldn’t stop replaying.</p></article>
+      </div>
+    </section>
+
+    <section class="home-section" id="how">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps, <em>zero accounts.</em></h2>
+      <ol class="how-steps">
+        <li><span>01</span><h3>Ask Spotify for your data</h3><p>Request <b>Extended streaming history</b> on Spotify’s privacy page. It covers your whole account.</p><a class="link" href="https://www.spotify.com/account/privacy/" target="_blank" rel="noopener noreferrer">Spotify privacy settings <span data-icon="external"></span></a></li>
+        <li><span>02</span><h3>Drop the ZIP in</h3><p>When the email arrives, bring the ZIP straight here. All of your years at once, no unzipping needed.</p><button class="link guide-trigger">More about the export <span data-icon="arrow"></span></button></li>
+        <li><span>03</span><h3>Explore</h3><p>Everything is worked out right here in your browser and saved on this device, ready next time.</p><a class="link" href="#/demo/overview">See what it looks like <span data-icon="arrow"></span></a></li>
+      </ol>
+    </section>
+
+    <section class="home-section privacy" id="privacy">
+      <div>
+        <span class="eyebrow">Your library stays yours</span>
+        <h2>Private by design, <em>not by promise.</em></h2>
+        <p>afterglow has no accounts and no backend database. Your export is read and kept in your own browser, and you can delete it whenever you like.</p>
+      </div>
+      <ul class="privacy-list">
+        <li><span data-icon="shield"></span><div><strong>Nothing is uploaded</strong><p>Your history files are processed on this device.</p></div></li>
+        <li><span data-icon="lock"></span><div><strong>No accounts, no tracking</strong><p>No Spotify login, no analytics, no third-party fonts or scripts.</p></div></li>
+        <li><span data-icon="album"></span><div><strong>Covers by name only</strong><p>When real artwork is on, only names and track IDs are looked up. Never what or when you played.</p></div></li>
+      </ul>
+    </section>
+
+    <section class="home-cta">
+      <h2>Ready when <em>you are.</em></h2>
+      <p>Start with the sample library, or bring your own history. Either way, it takes a few seconds.</p>
+      <div class="hero-actions"><a class="btn btn-primary btn-lg" href="#/demo/overview"><span data-icon="play"></span>Take the demo for a spin</a><button class="btn btn-ghost btn-lg import-trigger"><span data-icon="upload"></span>Bring your own history</button></div>
+    </section>
+
+    <footer class="footer home-footer">
+      <span class="footer-brand">afterglow<b>.</b></span>
+      <span>A little perspective on everything you listen to.</span>
+      <span>Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
+      <button class="link guide-trigger">About your data <span data-icon="external"></span></button>
+    </footer>
+  </div>
+
+  <div class="app" id="app" hidden>
   <header class="topbar">
-    <a class="brand" href="#/overview" aria-label="afterglow"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
+    <a class="brand" href="#/" aria-label="afterglow home"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
     <nav class="nav" aria-label="Sections">
       <a href="#/overview" data-view="overview"><span data-icon="overview"></span>Overview</a>
       <a href="#/artists" data-view="artists"><span data-icon="artists"></span>Artists</a>
@@ -35,6 +111,7 @@
     <div class="demo-banner" id="demo-banner" hidden>
       <span class="demo-badge"><span data-icon="sparkle"></span>Sample library</span>
       <p>You’re looking at a made-up listener’s history. Import your own Spotify export to make this yours.</p>
+      <a class="link" href="#/">Back home</a>
       <button class="btn btn-primary btn-sm import-trigger">Import your history</button>
     </div>
     <section class="page-head">
@@ -57,6 +134,7 @@
       <button class="link guide-trigger">About your data <span data-icon="external"></span></button>
     </footer>
   </main>
+  </div>
 
   <dialog id="import-dialog" class="dialog" closedby="any" aria-labelledby="import-title">
     <header class="dialog-head"><span class="eyebrow">Bring your history</span><button class="icon-btn close-dialog" aria-label="Close"><span data-icon="close"></span></button></header>
