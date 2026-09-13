@@ -134,7 +134,11 @@ async function handle(data) {
       let persisted = true;
       try { await storage('put', { rows: merged.rows, files }); } catch { persisted = false; }
       library = { rows: merged.rows, files }; mode = 'library';
-      post('imported', { mode, library: summary(), persisted, duplicates: merged.duplicates, enriched: merged.enriched, ignored, stats: aggregate(rows(), data.filters) });
+      const stats = aggregate(rows(), data.filters), all = data.filters.year === 'all' ? stats : aggregate(rows(), { ...data.filters, year: 'all' });
+      post('imported', { mode, library: summary(), stats,
+        info: { imported: incoming.length - merged.duplicates, duplicates: merged.duplicates, enriched: merged.enriched, ignored, persisted },
+        summary: { ms: all.ms, plays: all.plays, artistCount: all.artistCount, trackCount: all.trackCount, start: all.start, end: all.end, years: all.years.length,
+          topArtist: all.artists[0] ?? null, topTrack: all.tracks[0] ?? null, behaviour: all.behaviour.known > 0 } });
     }
     if (data.type === 'clear') {
       await storage('delete');

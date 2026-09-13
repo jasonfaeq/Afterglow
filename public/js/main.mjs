@@ -11,6 +11,7 @@ import * as habits from './views/habits.mjs';
 import * as years from './views/years.mjs';
 import { renderHome } from './views/home.mjs';
 import { artistView, loadingDetail } from './dialogs/details.mjs';
+import { welcomeView } from './dialogs/welcome.mjs';
 import { installArtwork } from './artwork/ui.mjs';
 
 const VIEWS = { overview, artists, tracks, habits, years };
@@ -109,10 +110,11 @@ worker.onmessage = ({ data }) => {
     setBusy(false); $('#import-dialog').close();
     state.library = data.library; animateNext = true;
     applyStats(data, false);
-    notify(`Your library is ready: ${plural(data.stats.plays, 'play')}${data.duplicates ? `, ${number(data.duplicates)} duplicates skipped` : ''}${data.enriched ? `, ${number(data.enriched)} older plays gained skip & shuffle details` : ''}.${data.persisted ? '' : ' Browser storage is unavailable, so this lasts for this visit only.'}`);
     const here = parseRoute();
     if (here.page === 'app' && here.mode === 'library') { render({ animate: true }); animateNext = false; }
     else location.hash = '#/overview';
+    $('#welcome-body').innerHTML = welcomeView(data.summary, data.info);
+    showDialog('#welcome-dialog');
     return;
   }
   if (data.type === 'cleared') {
@@ -201,7 +203,7 @@ document.addEventListener('click', event => {
   if (target.matches('.import-trigger')) { openImport(); return; }
   if (target.matches('.settings-trigger')) { showDialog('#settings-dialog'); return; }
   if (target.matches('.guide-trigger')) { showDialog('#guide-dialog'); return; }
-  if (target.matches('.close-dialog')) target.closest('dialog')?.close();
+  if (target.matches('.close-dialog, a[href^="#/"]')) target.closest('dialog')?.close();
   if (target.dataset.scroll) document.getElementById(target.dataset.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   if (target.dataset.metric) { state.timelineMetric = target.dataset.metric; render(); }
   if (target.dataset.sort) { state.tracks.sort = target.dataset.sort; state.tracks.page = 0; render(); }
