@@ -1,7 +1,7 @@
 import { viewHref } from '../state.mjs';
 import { escape, number, decimal, hours, duration, plural, formatDate, DAY } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { art, artistLink } from '../ui/components.mjs';
+import { art, artistLink, trackLink } from '../ui/components.mjs';
 
 // Shown right after an import: what came in, and the first few things worth knowing.
 export function welcomeView(summary, info) {
@@ -13,7 +13,7 @@ export function welcomeView(summary, info) {
   const long = { month: 'long', day: 'numeric', year: 'numeric' };
   const tops = [
     summary.topArtist && `<div class="welcome-top">${art('artist', summary.topArtist, 'md')}<div><span>Your all-time #1 artist</span>${artistLink(summary.topArtist.name, 'link-name welcome-name')}<em>${duration(summary.topArtist.ms)}</em></div></div>`,
-    summary.topTrack && `<div class="welcome-top">${art('track', summary.topTrack, 'md')}<div><span>Your most-played track</span><strong class="welcome-name">${escape(summary.topTrack.name)}</strong><em>${escape(summary.topTrack.artist)} · ${plural(summary.topTrack.plays, 'play')}</em></div></div>`
+    summary.topTrack && `<div class="welcome-top">${art('track', summary.topTrack, 'md')}<div><span>Your most-played track</span>${trackLink(summary.topTrack.name, summary.topTrack.artist, 'link-name welcome-name')}<em>${escape(summary.topTrack.artist)} · ${plural(summary.topTrack.plays, 'play')}</em></div></div>`
   ].filter(Boolean).join('');
   return `<header class="dialog-head"><span class="eyebrow">Your library is ready</span><button class="icon-btn close-dialog" aria-label="Close">${icon('close')}</button></header>
     <h2 class="dialog-title" id="welcome-title">Welcome to <em>your afterglow.</em></h2>

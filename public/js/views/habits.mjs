@@ -1,7 +1,7 @@
 import { state } from '../state.mjs';
 import { escape, number, decimal, percent, duration, clockDuration, plural, formatDate, dayLabel, hourLabel, DAY_NAMES } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, insight, segmented, hourTotals, dayparts, art, artistLink } from '../ui/components.mjs';
+import { panel, insight, segmented, hourTotals, dayparts, art, artistLink, openAttrs, trackLink } from '../ui/components.mjs';
 import { chart, calendarChart, clockChart, ring, HEAT, heatLevel } from '../ui/charts.mjs';
 
 const REASONS = {
@@ -70,7 +70,7 @@ function behaviour(stats) {
     const max = list[0]?.count || 1, total = list.reduce((s, x) => s + x.count, 0) || 1;
     return list.slice(0, 5).map(x => `<div class="hbar" data-tip="${escape(`${reasonLabel(x.reason)}\n${plural(x.count, 'play')}`)}"><span class="hbar-label">${escape(reasonLabel(x.reason))}</span><span class="hbar-track"><span style="width:${x.count / max * 100}%"></span></span><em>${percent(x.count / total)}</em></div>`).join('') || '<p class="empty-mini">No data</p>';
   };
-  const list = (items, skip) => items.length ? items.map(t => `<li>${art('track', t, 'xs')}<div><strong title="${escape(t.name)}">${escape(t.name)}</strong><span>${artistLink(t.artist)}</span></div><em>${skip ? `${percent(t.skips / t.plays)} skipped` : plural(t.plays, 'play')}</em></li>`).join('') : '<li class="empty-mini">Not enough plays yet.</li>';
+  const list = (items, skip) => items.length ? items.map(t => `<li ${openAttrs('track', t.name, t.artist)}>${art('track', t, 'xs')}<div><strong>${trackLink(t.name, t.artist)}</strong><span>${artistLink(t.artist)}</span></div><em>${skip ? `${percent(t.skips / t.plays)} skipped` : plural(t.plays, 'play')}</em></li>`).join('') : '<li class="empty-mini">Not enough plays yet.</li>';
   return `<section class="panel span-12"><header class="panel-head"><div><h2>Skips, shuffle &amp; offline</h2><p>How you actually press play. This includes short plays, since most skips happen in the first few seconds.</p></div></header>
     <div class="gauges">${gauges.map(([label, value, sub, color]) => `<div class="gauge">${ring(value, color)}<div><strong>${percent(value)}</strong><span>${label}</span><small>${sub}</small></div></div>`).join('')}</div>
     <div class="behaviour-grid">

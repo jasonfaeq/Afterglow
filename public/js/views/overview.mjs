@@ -1,7 +1,7 @@
 import { state, periodLabel, viewHref } from '../state.mjs';
 import { escape, number, decimal, percent, hours, duration, clockDuration, plural, DAY, monthLabel, formatDate, dayLabel } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, segmented, art, coverColors, backdrop, dayparts, openAttrs, artistLink } from '../ui/components.mjs';
+import { panel, segmented, art, coverColors, backdrop, dayparts, openAttrs, artistLink, trackLink } from '../ui/components.mjs';
 import { chart, areaChart, sparkline } from '../ui/charts.mjs';
 
 function spotlight(stats) {
@@ -66,9 +66,9 @@ function topArtists(stats) {
 }
 
 function topTracks(stats) {
-  const rows = stats.tracks.slice(0, 6).map((t, i) => `<li class="rank-row">
+  const rows = stats.tracks.slice(0, 6).map((t, i) => `<li class="rank-row" ${openAttrs('track', t.name, t.artist)}>
     <span class="rank-num">${String(i + 1).padStart(2, '0')}</span>${art('track', t)}
-    <div class="rank-main"><span class="rank-title">${escape(t.name)}</span><span class="rank-sub">${artistLink(t.artist)} · ${plural(t.plays, 'play')}</span></div>
+    <div class="rank-main">${trackLink(t.name, t.artist, 'rank-title')}<span class="rank-sub">${artistLink(t.artist)} · ${plural(t.plays, 'play')}</span></div>
     <span class="rank-value">${duration(t.ms)}</span></li>`).join('');
   return panel('On repeat, for a reason', 'The tracks you kept coming back to.', `<ol class="rank-list">${rows}</ol>`, { cls: 'span-6', action: `<a class="link" href="${viewHref('tracks')}">All tracks <span data-icon="arrow"></span></a>` });
 }

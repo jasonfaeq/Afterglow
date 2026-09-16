@@ -1,7 +1,7 @@
 import { state } from '../state.mjs';
 import { $, escape, number, duration, formatDate } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { art, segmented, artistLink } from '../ui/components.mjs';
+import { art, segmented, artistLink, openAttrs, trackLink } from '../ui/components.mjs';
 
 export const PAGE_SIZE = 25;
 const SORTS = { ms: 'Time', plays: 'Plays', first: 'First heard' };
@@ -13,9 +13,9 @@ export function filtered(stats) {
     .sort((a, b) => (key === 'first' ? (b.first ?? 0) - (a.first ?? 0) : b[key] - a[key]) || b.ms - a.ms);
 }
 
-const rows = (list, offset) => list.map((t, i) => `<tr>
+const rows = (list, offset) => list.map((t, i) => `<tr ${openAttrs('track', t.name, t.artist)}>
   <td class="num rank">${offset + i + 1}</td>
-  <td><div class="track-cell">${art('track', t)}<div class="track-text"><span class="track-title">${escape(t.name)}</span><span class="track-artist">${artistLink(t.artist)}</span></div></div></td>
+  <td><div class="track-cell">${art('track', t)}<div class="track-text">${trackLink(t.name, t.artist, 'track-title')}<span class="track-artist">${artistLink(t.artist)}</span></div></div></td>
   <td class="col-album"><span class="clip">${escape(t.album) || '—'}</span></td>
   <td class="num">${number(t.plays)}</td>
   <td class="num">${duration(t.ms)}</td>

@@ -265,6 +265,50 @@ export function artistDetail(rows, name, { year = 'all', minimum = 30000, utc = 
     known, skips, tracks: rank(tracks).slice(0, 10), albums: rank(albums).slice(0, 6), timeline: keys.map(key => ({ key, ms: months.get(key) ?? 0 })), hours, weekdays };
 }
 
+// One album: which of its tracks you play, and when.
+export function albumDetail(rows, artist, album, { year = 'all', minimum = 30000, utc = false } = {}) {
+  const parts = partsOf(utc), tracks = new Map(), months = new Map();
+  let ms = 0, plays = 0, totalMs = 0, everFirst = null, everLast = null;
+  for (const row of rows) {
+    if (row.ms < minimum) continue;
+    const [y, mo] = parts(new Date(row.ts)), inYear = year === 'all' || y === Number(year);
+    if (inYear) totalMs += row.ms;
+    if (row.artist !== artist || row.album !== album) continue;
+    everFirst = everFirst === null ? row.ts : Math.min(everFirst, row.ts); everLast = everLast === null ? row.ts : Math.max(everLast, row.ts);
+    if (!inYear) continue;
+    ms += row.ms; plays++;
+    const t = tracks.get(row.track) ?? tracks.set(row.track, { name: row.track, artist, album, uri: row.uri, ms: 0, plays: 0 }).get(row.track);
+    t.ms += row.ms; t.plays++;
+    if (!t.uri && row.uri) t.uri = row.uri;
+    bump(months, `${y}-${pad(mo + 1)}`, row.ms);
+  }
+  const keys = months.size ? monthRange([...months.keys()].sort()[0], [...months.keys()].sort().at(-1)) : [];
+  return { name: album, artist, ms, plays, share: totalMs ? ms / totalMs : 0, trackCount: tracks.size, everFirst, everLast,
+    tracks: rank(tracks), timeline: keys.map(key => ({ key, ms: months.get(key) ?? 0 })) };
+}
+
+// One track: plays per month, the hours you play it, and how often you skip it.
+export function trackDetail(rows, artist, name, { year = 'all', minimum = 30000, utc = false } = {}) {
+  const parts = partsOf(utc), months = new Map(), albums = new Map(), hours = Array(24).fill(0);
+  let ms = 0, plays = 0, known = 0, skips = 0, totalMs = 0, everFirst = null, everLast = null, uri = '';
+  for (const row of rows) {
+    const [y, mo, , , h] = parts(new Date(row.ts)), inYear = year === 'all' || y === Number(year);
+    if (inYear && row.ms >= minimum) totalMs += row.ms;
+    if (row.artist !== artist || row.track !== name) continue;
+    if (!uri && row.uri) uri = row.uri;
+    if (row.ms >= minimum) { everFirst = everFirst === null ? row.ts : Math.min(everFirst, row.ts); everLast = everLast === null ? row.ts : Math.max(everLast, row.ts); }
+    if (!inYear) continue;
+    if (hasBehaviour(row)) { known++; if (isSkip(row)) skips++; }
+    if (row.ms < minimum) continue;
+    ms += row.ms; plays++; hours[h] += row.ms;
+    if (row.album) bump(albums, row.album);
+    bump(months, `${y}-${pad(mo + 1)}`);
+  }
+  const keys = months.size ? monthRange([...months.keys()].sort()[0], [...months.keys()].sort().at(-1)) : [];
+  return { name, artist, album: topOf(albums)?.[0] ?? '', uri, ms, plays, share: totalMs ? ms / totalMs : 0, known, skips, everFirst, everLast,
+    hours, timeline: keys.map(key => ({ key, plays: months.get(key) ?? 0 })) };
+}
+
 // Spreadsheet-safe CSV: quotes everything, and defuses cells that would run as formulas.
 export function toCSV(entries) {
   const quote = value => {

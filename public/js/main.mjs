@@ -10,7 +10,7 @@ import * as tracks from './views/tracks.mjs';
 import * as habits from './views/habits.mjs';
 import * as years from './views/years.mjs';
 import { renderHome } from './views/home.mjs';
-import { artistView, loadingDetail } from './dialogs/details.mjs';
+import { artistView, albumView, trackView, loadingDetail } from './dialogs/details.mjs';
 import { welcomeView } from './dialogs/welcome.mjs';
 import { installArtwork } from './artwork/ui.mjs';
 
@@ -100,7 +100,7 @@ worker.onmessage = ({ data }) => {
   if (data.type === 'stats') { if (data.id === queryId) applyStats(data); return; }
   if (data.type === 'detail') {
     if (data.id !== detailId) return;
-    $('#detail-body').innerHTML = artistView(data.detail, state.stats);
+    $('#detail-body').innerHTML = ({ artist: artistView, album: albumView, track: trackView })[data.kind](data.detail, state.stats);
     $('#detail-dialog').scrollTop = 0;
     hydrateIcons($('#detail-body'));
     drawCharts();

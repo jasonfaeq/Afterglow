@@ -20,6 +20,8 @@ export const backdrop = (kind, item) => `<img class="backdrop" src="${coverURI(k
 // Anything with data-open opens a detail dialog.
 export const openAttrs = (kind, name, artist = '') => `data-open="${kind}" data-name="${escape(name)}"${artist ? ` data-artist="${escape(artist)}"` : ''}`;
 export const artistLink = (name, cls = 'link-name') => `<button class="${cls}" ${openAttrs('artist', name)}>${escape(name)}</button>`;
+export const trackLink = (name, artist, cls = 'link-name') => `<button class="${cls}" ${openAttrs('track', name, artist)} title="${escape(name)}">${escape(name)}</button>`;
+export const albumLink = (name, artist, cls = 'link-name') => `<button class="${cls}" ${openAttrs('album', name, artist)} title="${escape(name)}">${escape(name)}</button>`;
 
 export const panel = (title, subtitle, body, { cls = '', action = '' } = {}) =>
   `<section class="panel ${cls}"><header class="panel-head"><div><h2>${title}</h2>${subtitle ? `<p>${subtitle}</p>` : ''}</div>${action}</header>${body}</section>`;

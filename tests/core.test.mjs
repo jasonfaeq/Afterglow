@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, mergeRows, aggregate, artistDetail, demoRows, toCSV } from '../public/js/core.mjs';
+import { normalize, mergeRows, aggregate, artistDetail, albumDetail, trackDetail, demoRows, toCSV } from '../public/js/core.mjs';
 
 const event = (overrides = {}) => ({
   ts: '2024-01-01T15:30:00Z', ms_played: 180000,
@@ -125,6 +125,19 @@ test('artist detail matches the dashboard totals for the same filters', () => {
   assert.equal(detail.timeline.reduce((sum, m) => sum + m.ms, 0), top.ms);
   assert.equal(detail.hours.reduce((a, b) => a + b, 0), top.ms);
   assert.ok(Math.abs(detail.share - top.ms / stats.ms) < 1e-9);
+});
+
+test('album and track details agree with the dashboard for the same filters', () => {
+  const rows = demoRows(), filters = { year: '2025', minimum: 30000, utc: true }, stats = aggregate(rows, filters);
+  const album = stats.albums[0], detail = albumDetail(rows, album.artist, album.name, filters);
+  assert.equal(detail.ms, album.ms); assert.equal(detail.plays, album.plays);
+  assert.equal(detail.tracks.reduce((sum, t) => sum + t.plays, 0), album.plays);
+  assert.equal(detail.timeline.reduce((sum, m) => sum + m.ms, 0), album.ms);
+  const track = stats.tracks[3], song = trackDetail(rows, track.artist, track.name, filters);
+  assert.equal(song.ms, track.ms); assert.equal(song.plays, track.plays); assert.equal(song.album, track.album);
+  assert.equal(song.skips, track.skips); assert.equal(song.known, track.known);
+  assert.equal(song.timeline.reduce((sum, m) => sum + m.plays, 0), track.plays);
+  assert.equal(song.hours.reduce((a, b) => a + b, 0), track.ms);
 });
 
 test('CSV export handles quotes, commas, line breaks and formula injection', () => {

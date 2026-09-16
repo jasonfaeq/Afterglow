@@ -1,6 +1,6 @@
 import { periodLabel } from '../state.mjs';
 import { escape, number, percent, duration, plural, formatDate, monthLabel } from '../lib/format.mjs';
-import { panel, insight, art, openAttrs, artistLink } from '../ui/components.mjs';
+import { panel, insight, art, openAttrs, artistLink, albumLink } from '../ui/components.mjs';
 import { chart, stackChart, donut, SERIES } from '../ui/charts.mjs';
 
 function podium(stats) {
@@ -58,9 +58,9 @@ function topFifty(stats) {
 function albums(stats) {
   if (!stats.albums.length) return `<section class="panel empty span-12"><h2>No album details in this export.</h2><p>Spotify’s extended streaming history includes album names. Your artist and track charts still work.</p></section>`;
   return `<div class="section-head span-12"><h2>The full-album feeling</h2><p>Your top albums by listening time</p></div>
-    <div class="album-grid span-12">${stats.albums.slice(0, 12).map((album, i) => `<article class="album-card">
+    <div class="album-grid span-12">${stats.albums.slice(0, 12).map((album, i) => `<article class="album-card" ${openAttrs('album', album.name, album.artist)}>
       <div class="album-cover">${art('album', album, 'fill')}<span class="album-rank">${i + 1}</span></div>
-      <h3 title="${escape(album.name)}">${escape(album.name)}</h3><p>${artistLink(album.artist)}</p>
+      <h3>${albumLink(album.name, album.artist)}</h3><p>${artistLink(album.artist)}</p>
       <span class="album-hours">${duration(album.ms)} · ${plural(album.plays, 'play')}</span></article>`).join('')}</div>`;
 }
 

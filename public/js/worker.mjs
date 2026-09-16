@@ -1,4 +1,4 @@
-import { normalize, mergeRows, aggregate, artistDetail, demoRows } from './core.mjs';
+import { normalize, mergeRows, aggregate, artistDetail, albumDetail, trackDetail, demoRows } from './core.mjs';
 
 // Two libraries live here: the one you imported (if any) and the made-up sample.
 // The page decides which one it's looking at; imports only ever touch yours.
@@ -124,7 +124,11 @@ async function handle(data) {
     }
     if (data.type === 'use') mode = data.mode === 'library' && library ? 'library' : 'demo';
     if (data.type === 'use' || data.type === 'query') post('stats', { id: data.id, mode, stats: aggregate(rows(), data.filters) });
-    if (data.type === 'detail') post('detail', { id: data.id, kind: data.kind, detail: artistDetail(rows(), data.name, data.filters) });
+    if (data.type === 'detail') {
+      const detail = data.kind === 'album' ? albumDetail(rows(), data.artist, data.name, data.filters)
+        : data.kind === 'track' ? trackDetail(rows(), data.artist, data.name, data.filters) : artistDetail(rows(), data.name, data.filters);
+      post('detail', { id: data.id, kind: data.kind, detail });
+    }
     if (data.type === 'import') {
       const { incoming, added, ignored } = await readFiles(data.files);
       if (!incoming.length) throw new Error('No music listening events were found in those files.');
