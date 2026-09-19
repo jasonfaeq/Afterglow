@@ -9,6 +9,9 @@
 .nav a[aria-current="page"] { color: var(--ink); background: var(--surface-3); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07); }
 .nav .i svg { width: 16px; height: 16px; }
 .topbar-actions { display: flex; align-items: center; gap: 6px; justify-self: end; }
+.search-trigger { display: inline-flex; align-items: center; gap: 10px; height: 34px; padding: 0 6px 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-3); font-size: 13px; transition: border-color .2s, color .2s; }
+.search-trigger:hover { border-color: var(--line-2); color: var(--ink-2); }
+.search-trigger .i svg { width: 15px; height: 15px; }
 
 .page { width: min(1240px, 100%); margin: 0 auto; padding: 44px 28px 56px; }
 .demo-banner { display: flex; align-items: center; gap: 14px; margin: -16px 0 30px; padding: 8px 8px 8px 10px; border-radius: 999px; background: linear-gradient(90deg, rgba(255, 180, 94, .1), rgba(242, 85, 122, .07) 55%, rgba(139, 92, 246, .08)); border: 1px solid rgba(255, 180, 94, .2); }

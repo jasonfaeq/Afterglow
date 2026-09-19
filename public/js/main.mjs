@@ -12,6 +12,7 @@ import * as years from './views/years.mjs';
 import { renderHome } from './views/home.mjs';
 import { artistView, albumView, trackView, loadingDetail } from './dialogs/details.mjs';
 import { welcomeView } from './dialogs/welcome.mjs';
+import { installSearch } from './dialogs/search.mjs';
 import { installArtwork } from './artwork/ui.mjs';
 
 const VIEWS = { overview, artists, tracks, habits, years };
@@ -225,6 +226,19 @@ document.addEventListener('input', event => {
   tracks.update(state.stats);
 });
 window.addEventListener('hashchange', route);
+
+// Ctrl/⌘ K or / to search, 1–5 to switch pages.
+const openSearch = installSearch({ open: openDetail });
+$('#search-trigger').addEventListener('click', openSearch);
+if (/mac|iphone|ipad/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '')) $('#search-key').textContent = '⌘K';
+document.addEventListener('keydown', event => {
+  if (state.page !== 'app') return;
+  if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); openSearch(); return; }
+  if (event.metaKey || event.ctrlKey || event.altKey || event.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('dialog[open]')) return;
+  if (event.key === '/') { event.preventDefault(); openSearch(); return; }
+  const view = Object.keys(VIEWS)[Number(event.key) - 1];
+  if (view) location.hash = viewHref(view);
+});
 $('#year-filter').addEventListener('change', event => { state.filters.year = event.target.value; query(); });
 $('#minimum-filter').addEventListener('change', event => { state.filters.minimum = Number(event.target.value); saveSettings(); query(); });
 $('#timezone-filter').addEventListener('change', event => { state.filters.utc = event.target.value === 'utc'; useUTC(state.filters.utc); saveSettings(); query(); });

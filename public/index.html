@@ -102,6 +102,7 @@
       <a href="#/years" data-view="years"><span data-icon="calendar"></span>Years</a>
     </nav>
     <div class="topbar-actions">
+      <button class="search-trigger" id="search-trigger" aria-label="Search your library"><span data-icon="search"></span><span>Search</span><kbd id="search-key">Ctrl K</kbd></button>
       <button class="btn btn-soft btn-sm import-trigger"><span data-icon="upload"></span>Import</button>
       <button class="icon-btn settings-trigger" aria-label="Settings"><span data-icon="settings"></span></button>
     </div>
@@ -183,6 +184,11 @@
 
   <dialog id="detail-dialog" class="dialog dialog-wide" closedby="any" aria-label="Details"><div id="detail-body"></div></dialog>
   <dialog id="welcome-dialog" class="dialog dialog-welcome" closedby="any" aria-labelledby="welcome-title"><div id="welcome-body"></div></dialog>
+  <dialog id="search-dialog" class="dialog palette" closedby="any" aria-label="Search your library">
+    <label class="palette-input"><span data-icon="search"></span><input id="search-input" type="search" placeholder="Search artists, albums, tracks or pages" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="search-results"><kbd>Esc</kbd></label>
+    <ul class="palette-results" id="search-results" role="listbox"></ul>
+    <p class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> to move</span><span><kbd>Enter</kbd> to open</span><span><kbd>1</kbd>–<kbd>5</kbd> switch pages</span></p>
+  </dialog>
 
   <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
   <div class="toast" id="toast" role="status" hidden></div>
