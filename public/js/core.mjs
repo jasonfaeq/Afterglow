@@ -309,6 +309,23 @@ export function trackDetail(rows, artist, name, { year = 'all', minimum = 30000,
     hours, timeline: keys.map(key => ({ key, plays: months.get(key) ?? 0 })) };
 }
 
+// What you played on today's date in earlier years. Independent of the year filter.
+export function onThisDay(rows, { minimum = 30000, utc = false } = {}, now = Date.now()) {
+  const parts = partsOf(utc), [ty, tm, td] = parts(new Date(now)), years = new Map();
+  for (const row of rows) {
+    if (row.ms < minimum) continue;
+    const [y, mo, d] = parts(new Date(row.ts));
+    if (mo !== tm || d !== td || y >= ty) continue;
+    let entry = years.get(y);
+    if (!entry) years.set(y, entry = { year: y, ms: 0, plays: 0, tracks: new Map() });
+    entry.ms += row.ms; entry.plays++;
+    const key = `${row.artist}\u0000${row.track}`;
+    const t = entry.tracks.get(key) ?? entry.tracks.set(key, { name: row.track, artist: row.artist, album: row.album, uri: row.uri, ms: 0, plays: 0 }).get(key);
+    t.ms += row.ms; t.plays++;
+  }
+  return { month: tm, day: td, years: [...years.values()].sort((a, b) => b.year - a.year).map(e => ({ year: e.year, ms: e.ms, plays: e.plays, tracks: rank(e.tracks).slice(0, 3) })) };
+}
+
 // Spreadsheet-safe CSV: quotes everything, and defuses cells that would run as formulas.
 export function toCSV(entries) {
   const quote = value => {

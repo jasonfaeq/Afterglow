@@ -1,4 +1,7 @@
-import { normalize, mergeRows, aggregate, artistDetail, albumDetail, trackDetail, demoRows } from './core.mjs';
+import { normalize, mergeRows, aggregate as summarize, artistDetail, albumDetail, trackDetail, onThisDay, demoRows } from './core.mjs';
+
+// Dashboard stats, plus the "on this day" look back, which ignores the year filter.
+const aggregate = (list, filters) => Object.assign(summarize(list, filters), { onThisDay: onThisDay(list, filters) });
 
 // Two libraries live here: the one you imported (if any) and the made-up sample.
 // The page decides which one it's looking at; imports only ever touch yours.
@@ -9,7 +12,7 @@ const rows = () => mode === 'library' && library ? library.rows : demo();
 const summary = () => library && { plays: library.rows.length, files: library.files.length, from: library.rows[0]?.ts ?? null, to: library.rows.at(-1)?.ts ?? null };
 // A few facts about the sample listener for the homepage.
 function teaser() {
-  const s = aggregate(demo(), { minimum: 30000 });
+  const s = summarize(demo(), { minimum: 30000 });
   return { hours: Math.round(s.ms / 3600000), artists: s.artistCount, topArtist: s.artists[0]?.name ?? '', streak: s.streak?.days ?? 0, since: s.start };
 }
 
@@ -138,7 +141,7 @@ async function handle(data) {
       let persisted = true;
       try { await storage('put', { rows: merged.rows, files }); } catch { persisted = false; }
       library = { rows: merged.rows, files }; mode = 'library';
-      const stats = aggregate(rows(), data.filters), all = data.filters.year === 'all' ? stats : aggregate(rows(), { ...data.filters, year: 'all' });
+      const stats = aggregate(rows(), data.filters), all = data.filters.year === 'all' ? stats : summarize(rows(), { ...data.filters, year: 'all' });
       post('imported', { mode, library: summary(), stats,
         info: { imported: incoming.length - merged.duplicates, duplicates: merged.duplicates, enriched: merged.enriched, ignored, persisted },
         summary: { ms: all.ms, plays: all.plays, artistCount: all.artistCount, trackCount: all.trackCount, start: all.start, end: all.end, years: all.years.length,

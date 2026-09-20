@@ -3,6 +3,7 @@ import { escape, number, decimal, percent, hours, duration, clockDuration, plura
 import { icon } from '../lib/icons.mjs';
 import { panel, segmented, art, coverColors, backdrop, dayparts, openAttrs, artistLink, trackLink } from '../ui/components.mjs';
 import { chart, areaChart, sparkline } from '../ui/charts.mjs';
+import { heatmap } from './habits.mjs';
 
 function spotlight(stats) {
   const top = stats.artists[0], track = stats.tracks.find(t => t.artist === top.name);
@@ -92,5 +93,16 @@ function records(stats) {
     ${icon(name)}<span class="record-label">${label}</span><strong class="record-value" title="${value}">${value}</strong><span class="record-sub">${sub}</span></article>`).join('')}</div>`, { cls: 'span-12' });
 }
 
+function lookBack(stats) {
+  const otd = stats.onThisDay;
+  if (!otd) return '';
+  const date = new Date(Date.UTC(2000, otd.month, otd.day)).toLocaleDateString('en', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const body = otd.years.length ? `<ol class="look-back">${otd.years.slice(0, 4).map(y => `<li><span class="look-year">${y.year}</span><div>
+      <span class="look-total">${duration(y.ms)} · ${plural(y.plays, 'play')}</span>
+      ${y.tracks.slice(0, 2).map(t => `<div class="look-track" ${openAttrs('track', t.name, t.artist)}>${art('track', t, 'xs')}<span>${trackLink(t.name, t.artist)}<em>${escape(t.artist)}</em></span></div>`).join('')}
+    </div></li>`).join('')}</ol>` : `<p class="empty-mini">Nothing on ${date} in earlier years yet. Your history will fill this in.</p>`;
+  return panel('On this day', `What you were playing on ${date}, in years gone by.`, body, { cls: 'span-5', action: `<span class="chip">${icon('history')}${date}</span>` });
+}
+
 export const render = stats => `<div class="grid grid-hero">${spotlight(stats)}${statTiles(stats)}</div>
-  <div class="grid">${timeline(stats)}${topArtists(stats)}${topTracks(stats)}${records(stats)}</div>`;
+  <div class="grid">${timeline(stats)}${topArtists(stats)}${topTracks(stats)}${records(stats)}${heatmap(stats, 'span-7')}${lookBack(stats)}</div>`;

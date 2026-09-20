@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, mergeRows, aggregate, artistDetail, albumDetail, trackDetail, demoRows, toCSV } from '../public/js/core.mjs';
+import { normalize, mergeRows, aggregate, artistDetail, albumDetail, trackDetail, onThisDay, demoRows, toCSV } from '../public/js/core.mjs';
 
 const event = (overrides = {}) => ({
   ts: '2024-01-01T15:30:00Z', ms_played: 180000,
@@ -138,6 +138,17 @@ test('album and track details agree with the dashboard for the same filters', ()
   assert.equal(song.skips, track.skips); assert.equal(song.known, track.known);
   assert.equal(song.timeline.reduce((sum, m) => sum + m.plays, 0), track.plays);
   assert.equal(song.hours.reduce((a, b) => a + b, 0), track.ms);
+});
+
+test('on this day finds the same date in earlier years only', () => {
+  const { rows } = normalize([
+    event({ ts: '2023-05-04T10:00:00Z' }), event({ ts: '2024-05-04T11:00:00Z', master_metadata_track_name: 'Two' }),
+    event({ ts: '2024-05-05T11:00:00Z' }), event({ ts: '2025-05-04T09:00:00Z' }), event({ ts: '2022-05-04T09:00:00Z', ms_played: 1000 })
+  ]);
+  const result = onThisDay(rows, { utc: true }, Date.parse('2025-05-04T20:00:00Z'));
+  assert.equal(result.month, 4); assert.equal(result.day, 4);
+  assert.deepEqual(result.years.map(y => [y.year, y.plays]), [[2024, 1], [2023, 1]]);
+  assert.equal(result.years[0].tracks[0].name, 'Two');
 });
 
 test('CSV export handles quotes, commas, line breaks and formula injection', () => {
