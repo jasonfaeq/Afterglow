@@ -64,7 +64,7 @@ function updateLibrary() {
 function updateChrome() {
   $('#demo-banner').hidden = !state.isDemo;
   document.body.classList.toggle('is-demo', state.isDemo);
-  $$('.nav [data-view]').forEach(link => { link.href = viewHref(link.dataset.view); });
+  $$('.nav [data-view], .tabbar [data-view]').forEach(link => { link.href = viewHref(link.dataset.view); });
   updateLibrary();
 }
 
@@ -180,7 +180,7 @@ function renderHead() {
   $('#page-subtitle').innerHTML = state.view === 'overview' && stats?.plays
     ? `${state.filters.year === 'all' ? `From ${formatDate(stats.start, { month: 'long', year: 'numeric' })} to ${formatDate(stats.end, { month: 'long', year: 'numeric' })}` : `In ${state.filters.year}`}, you spent <strong>${number(hours(stats.ms))} hours</strong> with ${plural(stats.artistCount, 'artist')} and ${plural(stats.trackCount, 'track')}.`
     : subtitle;
-  $$('.nav [data-view]').forEach(link => { if (link.dataset.view === state.view) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
+  $$('.nav [data-view], .tabbar [data-view]').forEach(link => { if (link.dataset.view === state.view) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
 }
 
 export function render({ animate = false } = {}) {
