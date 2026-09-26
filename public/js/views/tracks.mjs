@@ -3,7 +3,7 @@ import { $, escape, number, duration, formatDate } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
 import { art, segmented, artistLink, openAttrs, trackLink } from '../ui/components.mjs';
 
-export const PAGE_SIZE = 25;
+export const PAGE_SIZE = 50;
 const SORTS = { ms: 'Time', plays: 'Plays', first: 'First heard' };
 
 export function filtered(stats) {
