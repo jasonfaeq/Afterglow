@@ -8,10 +8,13 @@ export function installTooltip() {
     const host = el.closest('dialog') ?? document.body;
     if (tooltip.parentElement !== host) host.append(tooltip);
     tooltip.textContent = el.dataset.tip; tooltip.hidden = false;
+    // Measure at full width first, or the viewport edge squeezes it before we clamp.
+    tooltip.style.left = '0px'; tooltip.style.top = '0px';
     const anchor = el.querySelector?.('.dot') ?? el, box = anchor.getBoundingClientRect();
-    let top = box.top - tooltip.offsetHeight - 10;
+    const width = tooltip.offsetWidth, height = tooltip.offsetHeight, edge = document.documentElement.clientWidth;
+    let top = box.top - height - 10;
     if (top < 8) top = box.bottom + 10;
-    tooltip.style.left = `${Math.max(8, box.left + box.width / 2 - tooltip.offsetWidth / 2)}px`;
+    tooltip.style.left = `${Math.max(8, Math.min(edge - width - 8, box.left + box.width / 2 - width / 2))}px`;
     tooltip.style.top = `${top}px`;
   }
   const target = event => event.target.closest?.('[data-tip]');
