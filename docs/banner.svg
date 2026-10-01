@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
+  <title id="title">Afterglow</title>
+  <desc id="desc">Your listening, in perspective. A sunset gradient, a striped sun, and a flowing listening timeline on a dark violet background.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#110e1c"/><stop offset="1" stop-color="#211329"/>
+    </linearGradient>
+    <linearGradient id="sunset" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ffc66b"/><stop offset=".48" stop-color="#f47787"/><stop offset="1" stop-color="#9061ef"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#f47787" stop-opacity=".22"/><stop offset="1" stop-color="#f47787" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop stop-color="#f47787" stop-opacity=".19"/><stop offset="1" stop-color="#f47787" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="frame"><rect width="1280" height="360" rx="24"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="360" fill="url(#background)"/>
+    <ellipse cx="1060" cy="160" rx="350" ry="320" fill="url(#halo)"/>
+    <g stroke="#fff" stroke-opacity=".035">
+      <path d="M0 260H1280M0 300H1280M0 340H1280"/>
+      <path d="M720 0V360M840 0V360M960 0V360M1080 0V360M1200 0V360"/>
+    </g>
+    <path d="M650 310 685 290 720 302 755 260 790 274 825 238 860 256 895 211 930 225 965 185 1000 203 1035 164 1070 191 1105 146 1140 161 1175 121 1210 141 1245 109 1280 125V360H650Z" fill="url(#fade)"/>
+    <path d="M650 310 685 290 720 302 755 260 790 274 825 238 860 256 895 211 930 225 965 185 1000 203 1035 164 1070 191 1105 146 1140 161 1175 121 1210 141 1245 109 1280 125" fill="none" stroke="url(#sunset)" stroke-width="2.5" stroke-linejoin="round" opacity=".55"/>
+    <rect x="64" y="50" width="50" height="50" rx="14" fill="#1e172b" stroke="#463045"/>
+    <circle cx="89" cy="78" r="15" fill="url(#sunset)"/>
+    <path d="M69 81H109M71 87H107M69 93H109" stroke="#1e172b" stroke-width="3"/>
+    <text x="130" y="81" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="3" fill="#e4b18b">YOUR PERSONAL LISTENING SPACE</text>
+    <text x="59" y="203" font-family="Georgia, serif" font-size="104" letter-spacing="-5" fill="#faf4ef">afterglow<tspan fill="#ffbc6d">.</tspan></text>
+    <text x="65" y="256" font-family="Georgia, serif" font-size="30" font-style="italic" fill="url(#sunset)">Your listening, in perspective.</text>
+    <text x="66" y="310" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#b9aebe" letter-spacing=".5">SPOTIFY HISTORY</text>
+    <circle cx="226" cy="305" r="2" fill="#e8aa80"/>
+    <text x="244" y="310" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#b9aebe" letter-spacing=".5">LOCAL FIRST</text>
+    <circle cx="356" cy="305" r="2" fill="#e8aa80"/>
+    <text x="374" y="310" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#b9aebe" letter-spacing=".5">JUST YOUR MUSIC</text>
+    <rect x=".5" y=".5" width="1279" height="359" rx="24" fill="none" stroke="#493047"/>
+  </g>
+</svg>
