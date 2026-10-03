@@ -37,6 +37,14 @@ Open it and you land on a welcome page. **Take the demo for a spin** to explore 
 
 Click any artist, album or track for its own story. Press <kbd>Ctrl</kbd> <kbd>K</kbd> to find anything in your library.
 
+<details>
+<summary><strong>More of the homepage</strong></summary>
+<br>
+
+[![What's inside, how it works, and privacy on the homepage](docs/screenshots/home-sections.jpg)](docs/screenshots/home-sections.jpg)
+
+</details>
+
 ## A look inside
 
 <table>
@@ -93,8 +101,9 @@ Click any artist, album or track for its own story. Press <kbd>Ctrl</kbd> <kbd>K
 <p align="center"><sub>Screenshots use the made-up sample library. Every artist, album, track and cover in it is fictional.</sub></p>
 
 <details>
-<summary><strong>On your phone</strong></summary>
+<summary><strong>Album pages, and afterglow on your phone</strong></summary>
 <br>
+<p align="center"><a href="docs/screenshots/album-detail.jpg"><img src="docs/screenshots/album-detail.jpg" alt="An album page with its cover, listening totals and tracks ranked by listening time" width="100%"></a></p>
 <p align="center"><img src="docs/screenshots/mobile.jpg" alt="afterglow on a phone, with a bottom tab bar" width="320"></p>
 </details>
 

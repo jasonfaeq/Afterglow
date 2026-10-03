@@ -120,9 +120,10 @@ worker.onmessage = ({ data }) => {
   }
   if (data.type === 'cleared') {
     setBusy(false); $('#settings-dialog').close();
-    state.library = null; state.mode = null; state.stats = null;
-    updateLibrary(); location.hash = '#/';
+    state.library = null; updateLibrary();
     notify('Your imported history has been deleted from this browser.');
+    // Exploring the demo? Stay there. Otherwise there's nothing left to show.
+    if (!state.isDemo) { state.mode = null; state.stats = null; location.hash = '#/'; }
   }
 };
 worker.onerror = () => {
@@ -289,4 +290,5 @@ hydrateIcons();
 installTooltip();
 installArtwork();
 route();
+document.body.classList.remove('booting');
 worker.postMessage({ type: 'init' });

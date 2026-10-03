@@ -16,7 +16,8 @@
   <link rel="stylesheet" href="css/dialogs.css">
   <link rel="stylesheet" href="css/home.css">
 </head>
-<body>
+<body class="booting">
+  <noscript><p class="noscript">afterglow reads your listening history right here in the browser, so it needs JavaScript turned on.</p></noscript>
   <div class="home" id="home">
     <header class="home-nav">
       <a class="brand" href="#/" aria-label="afterglow home"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
@@ -86,62 +87,62 @@
     <footer class="footer home-footer">
       <span class="footer-brand">afterglow<b>.</b></span>
       <span>A little perspective on everything you listen to.</span>
-      <span>Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
+      <span>© 2026 · Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
       <button class="link guide-trigger">About your data <span data-icon="external"></span></button>
     </footer>
   </div>
 
   <div class="app" id="app" hidden>
-  <header class="topbar">
-    <a class="brand" href="#/" aria-label="afterglow home"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
-    <nav class="nav" aria-label="Sections">
+    <header class="topbar">
+      <a class="brand" href="#/" aria-label="afterglow home"><img src="favicon.svg" alt="" width="30" height="30">afterglow<b>.</b></a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#/overview" data-view="overview"><span data-icon="overview"></span>Overview</a>
+        <a href="#/artists" data-view="artists"><span data-icon="artists"></span>Artists</a>
+        <a href="#/tracks" data-view="tracks"><span data-icon="music"></span>Tracks</a>
+        <a href="#/habits" data-view="habits"><span data-icon="habits"></span>Habits</a>
+        <a href="#/years" data-view="years"><span data-icon="calendar"></span>Years</a>
+      </nav>
+      <div class="topbar-actions">
+        <button class="search-trigger" id="search-trigger" aria-label="Search your library"><span data-icon="search"></span><span>Search</span><kbd id="search-key">Ctrl K</kbd></button>
+        <button class="btn btn-soft btn-sm import-trigger" aria-label="Import history"><span data-icon="upload"></span><span class="label">Import</span></button>
+        <button class="icon-btn settings-trigger" aria-label="Settings"><span data-icon="settings"></span></button>
+      </div>
+    </header>
+    <nav class="tabbar" aria-label="Sections">
       <a href="#/overview" data-view="overview"><span data-icon="overview"></span>Overview</a>
       <a href="#/artists" data-view="artists"><span data-icon="artists"></span>Artists</a>
       <a href="#/tracks" data-view="tracks"><span data-icon="music"></span>Tracks</a>
       <a href="#/habits" data-view="habits"><span data-icon="habits"></span>Habits</a>
       <a href="#/years" data-view="years"><span data-icon="calendar"></span>Years</a>
     </nav>
-    <div class="topbar-actions">
-      <button class="search-trigger" id="search-trigger" aria-label="Search your library"><span data-icon="search"></span><span>Search</span><kbd id="search-key">Ctrl K</kbd></button>
-      <button class="btn btn-soft btn-sm import-trigger" aria-label="Import history"><span data-icon="upload"></span><span class="label">Import</span></button>
-      <button class="icon-btn settings-trigger" aria-label="Settings"><span data-icon="settings"></span></button>
-    </div>
-  </header>
-  <nav class="tabbar" aria-label="Sections">
-    <a href="#/overview" data-view="overview"><span data-icon="overview"></span>Overview</a>
-    <a href="#/artists" data-view="artists"><span data-icon="artists"></span>Artists</a>
-    <a href="#/tracks" data-view="tracks"><span data-icon="music"></span>Tracks</a>
-    <a href="#/habits" data-view="habits"><span data-icon="habits"></span>Habits</a>
-    <a href="#/years" data-view="years"><span data-icon="calendar"></span>Years</a>
-  </nav>
-
-  <main class="page">
-    <div class="demo-banner" id="demo-banner" hidden>
-      <span class="demo-badge"><span data-icon="sparkle"></span>Sample library</span>
-      <p>You’re looking at a made-up listener’s history. Import your own Spotify export to make this yours.</p>
-      <a class="link" href="#/">Back home</a>
-      <button class="btn btn-primary btn-sm import-trigger">Import your history</button>
-    </div>
-    <section class="page-head">
-      <div>
-        <span class="eyebrow" id="page-eyebrow">A soundtrack worth exploring</span>
-        <h1 id="page-title">Your music, <em>in perspective.</em></h1>
-        <p id="page-subtitle"></p>
+  
+    <main class="page">
+      <div class="demo-banner" id="demo-banner" hidden>
+        <span class="demo-badge"><span data-icon="sparkle"></span>Sample library</span>
+        <p>You’re looking at a made-up listener’s history. Import your own Spotify export to make this yours.</p>
+        <a class="link" href="#/">Back home</a>
+        <button class="btn btn-primary btn-sm import-trigger">Import your history</button>
       </div>
-      <div class="page-filters">
-        <select class="select" id="year-filter" aria-label="Listening year"><option value="all">All time</option></select>
-        <button class="icon-btn outlined settings-trigger" aria-label="Listening filters"><span data-icon="sliders"></span></button>
-      </div>
-    </section>
-    <div id="dashboard" aria-live="polite"></div>
-    <p class="attribution" id="artwork-attribution" hidden><img src="assets/spotify-icon.svg" alt="" width="16" height="16">Artwork from <a href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Spotify</a>. Click a cover to open it there.</p>
-    <footer class="footer">
-      <span class="footer-brand">afterglow<b>.</b></span>
-      <span>A little perspective on everything you listen to.</span>
-      <span>Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
-      <button class="link guide-trigger">About your data <span data-icon="external"></span></button>
-    </footer>
-  </main>
+      <section class="page-head">
+        <div>
+          <span class="eyebrow" id="page-eyebrow">A soundtrack worth exploring</span>
+          <h1 id="page-title">Your music, <em>in perspective.</em></h1>
+          <p id="page-subtitle"></p>
+        </div>
+        <div class="page-filters">
+          <select class="select" id="year-filter" aria-label="Listening year"><option value="all">All time</option></select>
+          <button class="icon-btn outlined settings-trigger" aria-label="Listening filters"><span data-icon="sliders"></span></button>
+        </div>
+      </section>
+      <div id="dashboard" aria-live="polite"></div>
+      <p class="attribution" id="artwork-attribution" hidden><img src="assets/spotify-icon.svg" alt="" width="16" height="16">Artwork from <a href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Spotify</a>. Click a cover to open it there.</p>
+      <footer class="footer">
+        <span class="footer-brand">afterglow<b>.</b></span>
+        <span>A little perspective on everything you listen to.</span>
+        <span>© 2026 · Made by <a href="https://jasonfaeq.com" target="_blank" rel="noopener">Jason Faeq</a></span>
+        <button class="link guide-trigger">About your data <span data-icon="external"></span></button>
+      </footer>
+    </main>
   </div>
 
   <dialog id="import-dialog" class="dialog" closedby="any" aria-labelledby="import-title">
