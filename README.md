@@ -151,7 +151,7 @@ Larger exports can be extracted and imported as JSON in batches. Use a modern br
 
 The sample library is entirely made up, so every album gets its own **generated sleeve**: sunsets, rings, Bauhaus grids, mountain ridges, big italic letters. Artists get soft generated portraits. Your imported library uses the same art by default, so it never looks empty.
 
-If you run afterglow with Spotify app credentials on the server, imported libraries can also show **real album covers and artist photos**. Nobody signs in to Spotify. Only names and track IDs are looked up, never your listening history, and real covers link back to Spotify. See the [cover art setup guide](docs/ARTWORK_SETUP.md). Settings → **Cover art & artist photos** turns lookups off at any time.
+If you run afterglow with Spotify app credentials on the server (locally with `.env`, or on Vercel as environment variables), imported libraries can also show **real album covers and artist photos**. Nobody signs in to Spotify. Only names and track IDs are looked up, never your listening history, and real covers link back to Spotify. See the [cover art setup guide](docs/ARTWORK_SETUP.md). Settings → **Cover art & artist photos** turns lookups off at any time.
 
 ## Your library stays yours
 

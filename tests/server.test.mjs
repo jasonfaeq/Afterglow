@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
+import { createServer } from 'node:http';
 import { createAfterglowServer } from '../server.mjs';
+import { createArtworkHandler } from '../server/artwork-api.mjs';
 import { SpotifyCatalog } from '../server/spotify-catalog.mjs';
 
 const ID = 'B'.repeat(22), IMAGE = 'https://i.scdn.co/image/test-artwork';
@@ -75,6 +77,31 @@ test('oversized chunked bodies get a 413 without reaching the catalog', async t 
   const body = new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(JSON.stringify({ ...input, name: 'x'.repeat(5000) }))); controller.close(); } });
   const result = await fetch(`${base}/api/artwork`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, duplex: 'half' });
   assert.equal(result.status, 413); assert.equal(calls, 0);
+});
+
+// Vercel runs the same handler as a function behind its edge, which sets the X-Forwarded-* headers itself.
+async function vercelLike(t, options) {
+  const handler = createArtworkHandler({ trustProxy: true, ...options }), server = createServer(handler);
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(() => { server.closeAllConnections(); return new Promise(resolve => server.close(resolve)); });
+  return `http://127.0.0.1:${server.address().port}`;
+}
+const edge = (ip, extra = {}) => ({ 'Content-Type': 'application/json', 'X-Forwarded-For': ip, 'X-Forwarded-Host': 'afterglow.example', 'X-Forwarded-Proto': 'https', ...extra });
+
+test('the Vercel functions load and use the shared artwork handler', async () => {
+  for (const file of ['../api/artwork/index.js', '../api/artwork/status.js']) assert.equal(typeof (await import(file)).default, 'function', file);
+});
+
+test('behind a trusted edge, origin checks use the public host and limits apply per visitor', async t => {
+  let calls = 0;
+  const base = await vercelLike(t, { catalog: { status: () => ({ available: true, retryAfter: 0 }), lookup: async () => { calls++; return artwork; } }, perIPLimit: 1 });
+  const post = headers => fetch(`${base}/api/artwork`, { method: 'POST', headers, body: JSON.stringify(input) });
+  assert.equal((await post(edge('1.1.1.1', { Origin: 'https://afterglow.example' }))).status, 200);
+  assert.equal((await post(edge('2.2.2.2', { Origin: 'https://evil.example' }))).status, 403);
+  assert.equal((await post(edge('1.1.1.1'))).status, 429);
+  assert.equal((await post(edge('3.3.3.3'))).status, 200);
+  assert.equal(calls, 2);
+  assert.deepEqual(await (await fetch(`${base}/api/artwork/status`, { headers: edge('4.4.4.4') })).json(), { available: true, retryAfter: 0 });
 });
 
 test('unexpected errors never leak stack traces, secrets or provider bodies', async t => {
