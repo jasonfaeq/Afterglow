@@ -16,6 +16,8 @@ export function installArtwork({ client = new ArtworkClient() } = {}) {
     $('#artwork-status').textContent = !enabled ? 'Artwork is off. Nothing is looked up.' : client.problem ||
       (!started ? 'Real covers can load once you open your own imported library.' : !ready ? 'Checking artwork…' : client.available ? 'Covers and artist photos load as you browse.' : 'Real covers aren’t set up on this site, so you’ll see generated ones.');
     $('#artwork-retry').hidden = !enabled || !client.problem;
+    // No real covers on this site at all? Then the switch wouldn't do anything.
+    $('#artwork-enabled').closest('.switch').hidden = enabled && started && ready && !client.available && !client.problem;
     $('#artwork-attribution').hidden = !enabled || !client.available;
   }
   function clearArtwork() {
