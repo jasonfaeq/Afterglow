@@ -151,6 +151,12 @@ test('the browser sends only same-origin catalog metadata, without credentials, 
   await assert.rejects(client.lookup({ ...spec, history: [] }));
 });
 
+test('a static host without the artwork API just means no real covers, not an error', async () => {
+  const client = new ArtworkClient({ fetch: async () => new Response('Not found', { status: 404 }) });
+  assert.equal(await client.checkStatus(), false);
+  assert.equal(client.problem, ''); assert.equal(await client.lookup(spec), null);
+});
+
 test('the default fetch keeps its global receiver', async () => {
   const original = globalThis.fetch;
   try {

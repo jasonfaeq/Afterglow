@@ -10,11 +10,11 @@ export function installArtwork({ client = new ArtworkClient() } = {}) {
   let enabled = true;
   try { enabled = local?.getItem(PREFERENCE) !== 'false'; } catch { /* Artwork works without saved preferences. */ }
   $('#artwork-enabled').checked = enabled;
-  let seen = new WeakSet(), queue = [], pumping = false, timer, retryTimer, stopped = false, ready = false, checking = false;
+  let seen = new WeakSet(), queue = [], pumping = false, timer, retryTimer, stopped = false, ready = false, checking = false, started = false;
 
   function status() {
     $('#artwork-status').textContent = !enabled ? 'Artwork is off. Nothing is looked up.' : client.problem ||
-      (!ready ? 'Checking artwork…' : client.available ? 'Covers and artist photos load as you browse.' : 'Catalog artwork isn’t set up on this server, so you’ll see generated covers.');
+      (!started ? 'Real covers can load once you open your own imported library.' : !ready ? 'Checking artwork…' : client.available ? 'Covers and artist photos load as you browse.' : 'Real covers aren’t set up on this site, so you’ll see generated ones.');
     $('#artwork-retry').hidden = !enabled || !client.problem;
     $('#artwork-attribution').hidden = !enabled || !client.available;
   }
@@ -96,17 +96,24 @@ export function installArtwork({ client = new ArtworkClient() } = {}) {
       } else if (enabled) begin();
     }
   }
-  new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+  // Only talk to the artwork API once real library tiles are on screen. The demo never needs it.
+  function wake() {
+    if (started || !enabled || !document.querySelector('[data-art-name]')) return null;
+    started = true; status();
+    return begin();
+  }
+  new MutationObserver(() => { wake(); scan(); }).observe(document.body, { childList: true, subtree: true });
   $('#artwork-enabled').addEventListener('change', event => {
     enabled = event.target.checked;
     try { local?.setItem(PREFERENCE, String(enabled)); } catch { /* This visit still honours the choice. */ }
     clearTimeout(timer); clearTimeout(retryTimer); intersection.disconnect(); queue = []; seen = new WeakSet();
     if (!enabled) { client.cancel(); clearArtwork(); ready = true; }
-    else { ready = false; begin(); }
+    else if (started) { ready = false; begin(); }
+    else wake();
     status();
   });
   $('#artwork-retry').addEventListener('click', begin);
   document.addEventListener('visibilitychange', () => { if (enabled && stopped && document.visibilityState === 'visible') begin(); });
   status();
-  return { client, initialization: enabled ? begin() : Promise.resolve() };
+  return { client, initialization: wake() ?? Promise.resolve() };
 }

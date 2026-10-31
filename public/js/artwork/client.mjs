@@ -27,7 +27,10 @@ export class ArtworkClient {
   }
   async checkStatus() {
     const epoch = this.epoch;
-    const data = await this.request('/api/artwork/status');
+    let data;
+    // On a static host (GitHub Pages, Vercel without functions) there is no API: that just means no real covers.
+    try { data = await this.request('/api/artwork/status'); }
+    catch (error) { if (error.status !== 404) throw error; data = { available: false }; }
     if (epoch !== this.epoch) return false;
     this.available = data.available === true;
     const seconds = Number(data.retryAfter);
