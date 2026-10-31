@@ -155,7 +155,7 @@ If you run afterglow with Spotify app credentials on the server (locally with `.
 
 ## Your library stays yours
 
-**Your export is read on your device.** A background worker parses the files and computes every chart, and your library is saved in your browser's IndexedDB storage. There's no account, no backend database, no analytics, and no third-party fonts or scripts.
+**Your export is read on your device.** A background worker parses the files and computes every chart, and your library is saved in your browser's IndexedDB storage. There's no account, no backend database, and no third-party fonts. The hosted site uses Vercel Web Analytics for anonymous, cookie-free page-view counts; it never sees your history, and a local copy doesn't load it at all.
 
 | Kept for your dashboard | Dropped during import |
 | --- | --- |

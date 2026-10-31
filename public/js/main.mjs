@@ -285,6 +285,13 @@ const hasFiles = event => [...(event.dataTransfer?.types ?? [])].includes('Files
 window.addEventListener('dragover', event => { if (hasFiles(event)) event.preventDefault(); });
 window.addEventListener('drop', event => { if (hasFiles(event) && !event.target.closest?.('#drop-zone')) { event.preventDefault(); importFiles(event.dataTransfer.files); } });
 
+// Vercel Web Analytics: anonymous page views only, no cookies, nothing about your music.
+// Only on the deployed site, so a local copy never loads it.
+if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  document.head.append(Object.assign(document.createElement('script'), { src: '/_vercel/insights/script.js', defer: true }));
+}
+
 loadSettings();
 hydrateIcons();
 installTooltip();
