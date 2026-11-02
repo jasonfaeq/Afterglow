@@ -1,22 +1,23 @@
 // Generated cover art. Every album gets a small, deterministic SVG artwork and every artist a soft
 // portrait, so the sample library (and anything without a real cover) still looks like a shelf of records.
 
-// [background, accent, accent, accent, ink]
+// [background, accent, accent, accent, ink]. Every palette is a handful of riso inks on paper,
+// so the whole shelf looks like it came off the same press.
 const PALETTES = [
-  ['#2b1331', '#ff7a5c', '#ffc46b', '#f2557a', '#fff1e0'],
-  ['#0e2a3a', '#2aa6a1', '#9fe3d1', '#f4d06f', '#f1fbf8'],
-  ['#160f2e', '#7b3fe4', '#c792ff', '#ff8fb1', '#f6eeff'],
-  ['#efe6d6', '#e2492f', '#1f3a68', '#f2b631', '#1a1a1a'],
-  ['#10291f', '#2f7d57', '#a8d5a2', '#f3c969', '#eef7ec'],
-  ['#14161f', '#ef3e5c', '#f7f1e8', '#5b6a8c', '#f7f1e8'],
-  ['#f6dfe2', '#e8879d', '#6c4f8c', '#f6c6a8', '#2d2141'],
-  ['#0d0a1c', '#ff4f8b', '#29d3ff', '#f8e16c', '#ffffff'],
-  ['#f2e6d8', '#d26a46', '#3b4a6b', '#83a98c', '#2a2623'],
-  ['#1a0c08', '#e2471f', '#ffb347', '#8f2a1d', '#fff0dc'],
-  ['#071a2c', '#1f6feb', '#56d6c9', '#ff6b6b', '#eaf6ff'],
-  ['#221a38', '#8d6cc8', '#e5b3d8', '#ffd2a1', '#fbf3ff'],
-  ['#fff4d6', '#ff9f1c', '#2ec4b6', '#e71d36', '#1f1a14'],
-  ['#e9e6e0', '#1c1c1c', '#8a8a8a', '#d1495b', '#111111']
+  ['#f6f5f1', '#ff48a6', '#2f55c8', '#ffd23f', '#1b1b1f'],
+  ['#2f55c8', '#ff48a6', '#f6f5f1', '#ffd23f', '#f6f5f1'],
+  ['#ffd23f', '#2f55c8', '#ff48a6', '#1b1b1f', '#1b1b1f'],
+  ['#f6f5f1', '#0f8a7a', '#ff7a2f', '#2f55c8', '#1b1b1f'],
+  ['#1b1b1f', '#ff48a6', '#ffd23f', '#2f55c8', '#f6f5f1'],
+  ['#ff48a6', '#2f55c8', '#ffd23f', '#f6f5f1', '#1b1b1f'],
+  ['#0f8a7a', '#ffd23f', '#f6f5f1', '#ff48a6', '#f6f5f1'],
+  ['#efe8da', '#ff7a2f', '#1b1b1f', '#2f55c8', '#1b1b1f'],
+  ['#ff7a2f', '#1b1b1f', '#f6f5f1', '#2f55c8', '#1b1b1f'],
+  ['#e6ebf7', '#2f55c8', '#ff48a6', '#0f8a7a', '#1b1b1f'],
+  ['#f6f5f1', '#1b1b1f', '#ff48a6', '#ff7a2f', '#1b1b1f'],
+  ['#2f55c8', '#ffd23f', '#0f8a7a', '#ff48a6', '#f6f5f1'],
+  ['#fde3ef', '#ff48a6', '#2f55c8', '#ff7a2f', '#1b1b1f'],
+  ['#e7e5df', '#2f55c8', '#1b1b1f', '#ffd23f', '#1b1b1f']
 ];
 
 const hash = text => { let h = 2166136261; for (const char of text) { h ^= char.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
