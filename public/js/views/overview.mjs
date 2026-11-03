@@ -1,22 +1,34 @@
 import { state, periodLabel, viewHref } from '../state.mjs';
 import { escape, number, decimal, percent, hours, duration, clockDuration, plural, DAY, monthLabel, formatDate, dayLabel } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { panel, segmented, art, coverColors, backdrop, dayparts, openAttrs, artistLink, trackLink } from '../ui/components.mjs';
+import { panel, segmented, art, dayparts, openAttrs, artistLink, trackLink } from '../ui/components.mjs';
 import { chart, areaChart, sparkline } from '../ui/charts.mjs';
 import { heatmap } from './habits.mjs';
 
-function spotlight(stats) {
+// The #1 artist headlines a gig poster for the period on screen.
+function poster(stats) {
   const top = stats.artists[0], track = stats.tracks.find(t => t.artist === top.name);
-  const [c1, c2] = coverColors('artist', top);
-  return `<section class="spotlight span-7" style="--c1:${c1};--c2:${c2}" data-backdrop-host>
-    ${backdrop('artist', top)}${art('artist', top, 'xl')}
-    <div class="spotlight-body">
-      <span class="eyebrow">Your #1 artist · ${periodLabel()}</span>
-      <h2 class="spotlight-name">${artistLink(top.name)}</h2>
-      <p class="spotlight-stats"><strong>${duration(top.ms)}</strong> · ${plural(top.plays, 'play')} · ${percent(top.ms / stats.ms, 1)} of your listening</p>
-      <p class="spotlight-meta">${top.first ? `With you since ${formatDate(top.first, { month: 'long', year: 'numeric' })}` : ''}${track ? ` · Most played: <strong>${escape(track.name)}</strong>` : ''}</p>
-      <div><button class="btn btn-soft btn-sm" ${openAttrs('artist', top.name)}>Open their story ${icon('arrow')}</button></div>
-    </div>
+  const month = { month: 'short', year: 'numeric' };
+  const dates = state.filters.year !== 'all' ? state.filters.year : `${formatDate(stats.start, month)} – ${formatDate(stats.end, month)}`;
+  return `<section class="poster span-7" aria-label="Your number one artist">
+    <span class="poster-sun" aria-hidden="true"></span>${art('artist', top, 'xl')}
+    <span class="poster-kicker">Headlining · ${dates}</span>
+    <h2 class="poster-name">${artistLink(top.name)}</h2>
+    <p class="poster-stats">Your #1 artist. <strong>${duration(top.ms)}</strong> over ${plural(top.plays, 'play')}, ${percent(top.ms / stats.ms, 1)} of your listening.</p>
+    <p class="poster-meta">${[top.first && `With you since ${formatDate(top.first, { month: 'long', year: 'numeric' })}`, track && `Most played: <strong>${escape(track.name)}</strong>`].filter(Boolean).join(' · ')}</p>
+    <div><button class="btn btn-paper btn-sm" ${openAttrs('artist', top.name)}>Read their story ${icon('arrow')}</button></div>
+  </section>`;
+}
+
+// Everyone else on the bill, each name set in proportion to its listening time.
+function lineup(stats) {
+  const acts = stats.artists.slice(1, 6), lead = acts[0]?.ms || 1;
+  const top10 = stats.artists.slice(0, 10).reduce((sum, a) => sum + a.ms, 0) / (stats.ms || 1);
+  const list = acts.length ? `<ol class="lineup-list">${acts.map(a => `<li style="--s:${(a.ms / lead).toFixed(3)}">${artistLink(a.name, 'link-name lineup-name')}<span>${duration(a.ms)}</span></li>`).join('')}</ol>`
+    : '<p class="empty-mini">Just one artist so far. Play a few more and they’ll join the bill.</p>';
+  return `<section class="lineup span-5" aria-label="Your next most-played artists">
+    <span class="lineup-kicker">Also on the bill · sized by hours</span>${list}
+    <p class="lineup-foot">${plural(stats.artistCount, 'artist')} in all${stats.artistCount > 10 ? ` · your top 10 make up ${percent(top10)} of your time` : ''}</p>
   </section>`;
 }
 
@@ -37,7 +49,7 @@ function statTiles(stats) {
     ['artists', 'Artists', number(stats.artistCount), '', current ? `${plural(current.newArtists, 'new artist')} discovered in ${current.year}` : `Your top 10 make up ${percent(top10)} of your time`, delta(stats.artistCount, prev?.artistCount)],
     ['music', 'Tracks', number(stats.trackCount), '', `${plural(stats.albumCount, 'album')} · ${decimal(stats.trackCount / (stats.artistCount || 1))} per artist`, delta(stats.trackCount, prev?.trackCount)]
   ];
-  return `<section class="stat-grid span-5" aria-label="Listening summary">${tiles.map(([name, label, value, unit, sub, change, spark = '']) => `<article class="stat">
+  return `<section class="stat-grid span-12" aria-label="Listening summary">${tiles.map(([name, label, value, unit, sub, change, spark = '']) => `<article class="stat">
     <div class="stat-label">${icon(name)}${label}${change}</div>
     <div class="stat-row"><div class="stat-value">${value}${unit ? `<small>${unit}</small>` : ''}</div>${spark}</div>
     <p class="stat-sub">${sub}</p></article>`).join('')}</section>`;
@@ -89,8 +101,8 @@ function records(stats) {
   const top = dayparts(stats).reduce((a, b) => b.ms > a.ms ? b : a);
   tiles.push([top.icon, 'Listening persona', top.persona, `${percent(top.ms / (stats.ms || 1))} of your time is in the ${top.label.toLowerCase()}, ${top.range}`]);
   if (stats.firstPlay) tiles.push(['flag', state.filters.year === 'all' ? 'Where it began' : `First play of ${state.filters.year}`, escape(stats.firstPlay.name), `${escape(stats.firstPlay.artist)} · ${formatDate(stats.firstPlay.ts)}`]);
-  return panel('Records & moments', `The standout days, streaks and habits of ${periodLabel()}.`, `<div class="records">${tiles.map(([name, label, value, sub]) => `<article class="record">
-    ${icon(name)}<span class="record-label">${label}</span><strong class="record-value" title="${value}">${value}</strong><span class="record-sub">${sub}</span></article>`).join('')}</div>`, { cls: 'span-12' });
+  return panel('Records &amp; moments', `The standout days, streaks and habits of ${periodLabel()}.`, `<div class="records">${tiles.map(([name, label, value, sub]) => `<article class="stub">
+    <div class="stub-main"><span class="record-label">${label}</span><strong class="record-value" title="${value}">${value}</strong><span class="record-sub">${sub}</span></div><span class="stub-tear" aria-hidden="true">${icon(name)}</span></article>`).join('')}</div>`, { cls: 'span-12' });
 }
 
 function lookBack(stats) {
@@ -104,5 +116,5 @@ function lookBack(stats) {
   return panel('On this day', `What you were playing on ${date}, in years gone by.`, body, { cls: 'span-5', action: `<span class="chip">${icon('history')}${date}</span>` });
 }
 
-export const render = stats => `<div class="grid grid-hero">${spotlight(stats)}${statTiles(stats)}</div>
-  <div class="grid">${timeline(stats)}${topArtists(stats)}${topTracks(stats)}${records(stats)}${heatmap(stats, 'span-7')}${lookBack(stats)}</div>`;
+export const render = stats => `<div class="grid grid-hero">${poster(stats)}${lineup(stats)}</div>
+  <div class="grid">${statTiles(stats)}${timeline(stats)}${topArtists(stats)}${topTracks(stats)}${records(stats)}${heatmap(stats, 'span-7')}${lookBack(stats)}</div>`;
