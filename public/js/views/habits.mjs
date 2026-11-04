@@ -2,7 +2,7 @@ import { state } from '../state.mjs';
 import { escape, number, decimal, percent, duration, clockDuration, plural, formatDate, dayLabel, hourLabel, DAY_NAMES } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
 import { panel, insight, segmented, hourTotals, dayparts, art, artistLink, openAttrs, trackLink } from '../ui/components.mjs';
-import { chart, calendarChart, clockChart, ring, HEAT, heatLevel } from '../ui/charts.mjs';
+import { chart, calendarChart, clockChart, ring, HEAT, INK, heatLevel } from '../ui/charts.mjs';
 
 const REASONS = {
   trackdone: 'Previous track ended', clickrow: 'You picked it', playbtn: 'Pressed play', fwdbtn: 'Skipped forward', backbtn: 'Went back', appload: 'App opened',
@@ -20,12 +20,12 @@ function calendar(stats) {
   const active = stats.daily.filter(([key]) => key.startsWith(`${year}-`)).length, streak = stats.streak;
   const chips = state.filters.year === 'all' && years.length > 1 ? segmented('Calendar year', years.slice(0, 6).map(y => [String(y), String(y)]), String(year), 'data-cal-year') : '';
   const note = `You listened on <strong>${plural(active, 'day')}</strong> in ${year}.${streak ? ` Your longest streak ${state.filters.year === 'all' ? 'ever' : `in ${year}`} ran <strong>${plural(streak.days, 'day')}</strong>, ${dayLabel(streak.from, short)} to ${dayLabel(streak.to, short)}.` : ''}`;
-  return panel('Every day, at a glance', `Daily listening in ${year}. The brighter the square, the bigger the day.`, `${chart(w => calendarChart(w, stats.daily, year))}${legend}${insight('flame', note)}`, { cls: 'span-12', action: chips });
+  return panel('Every day, at a glance', `Daily listening in ${year}. The more ink in a square, the bigger the day.`, `${chart(w => calendarChart(w, stats.daily, year))}${legend}${insight('flame', note)}`, { cls: 'span-12', action: chips });
 }
 
 function clock(stats) {
   const parts = dayparts(stats), total = stats.ms || 1;
-  const list = parts.map(p => `<div class="daypart"><span class="daypart-icon" style="color:${p.color}">${icon(p.icon)}</span><div><strong>${p.label}</strong><span>${p.range}</span></div>
+  const list = parts.map(p => `<div class="daypart"><span class="daypart-icon" style="background:${p.color}">${icon(p.icon)}</span><div><strong>${p.label}</strong><span>${p.range}</span></div>
     <span class="daypart-bar"><span style="width:${p.ms / total * 100}%;background:${p.color}"></span></span><em>${percent(p.ms / total)}</em></div>`).join('');
   return panel('Around the clock', 'Listening by hour of the day.', `<div class="clock-wrap">${chart(w => clockChart(w, hourTotals(stats)), 'clock-slot')}<div class="dayparts">${list}</div></div>`, { cls: 'span-6' });
 }
@@ -61,10 +61,10 @@ function behaviour(stats) {
     <button class="btn btn-soft import-trigger">Import extended history</button></div>`, { cls: 'span-12' });
   const rate = (n, d) => d ? n / d : 0;
   const gauges = [
-    ['Skip rate', rate(b.skips, b.known), `${number(b.skips)} of ${number(b.known)} plays`, '#f2557a'],
-    ['On shuffle', rate(b.shuffles, b.shuffleKnown), `${number(b.shuffles)} plays`, '#ffb45e'],
-    ['Offline', rate(b.offline, b.offlineKnown), `${number(b.offline)} plays`, '#8b5cf6'],
-    ['Under 30 seconds', rate(b.short, b.events), `${number(b.short)} short plays`, '#5aa9ff']
+    ['Skip rate', rate(b.skips, b.known), `${number(b.skips)} of ${number(b.known)} plays`, INK.pink],
+    ['On shuffle', rate(b.shuffles, b.shuffleKnown), `${number(b.shuffles)} plays`, INK.blue],
+    ['Offline', rate(b.offline, b.offlineKnown), `${number(b.offline)} plays`, INK.teal],
+    ['Under 30 seconds', rate(b.short, b.events), `${number(b.short)} short plays`, INK.orange]
   ];
   const bars = list => {
     const max = list[0]?.count || 1, total = list.reduce((s, x) => s + x.count, 0) || 1;

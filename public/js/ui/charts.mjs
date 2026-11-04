@@ -1,8 +1,12 @@
 import { escape, niceMax, axisNumber, hours, percent, duration, plural, dayLabel, hourLabel, DAY, DAY_NAMES } from '../lib/format.mjs';
 
-export const SERIES = ['#ffb45e', '#ff7a5c', '#f2557a', '#c04fd6', '#8b5cf6', '#5aa9ff'];
-export const HEAT = ['rgba(255, 255, 255, .05)', '#3b2349', '#6b2a60', '#a8396a', '#e75d5c', '#ffb45e'];
-export const heatLevel = (value, cap) => value ? Math.min(5, Math.max(1, Math.ceil(value / cap * 5))) : 0;
+// Riso inks. Layers multiply where they overlap, so neighbours stay readable.
+export const INK = { blue: '#2f55c8', pink: '#ff48a6', orange: '#ff7a2f', teal: '#0f8a7a', yellow: '#ffd23f', black: '#1b1b1f' };
+export const SERIES = [INK.blue, INK.pink, INK.orange, INK.teal, INK.yellow, '#7d8597'];
+// From bare paper up through blue, with the very biggest days in pink.
+export const HEAT = ['#e7e5de', '#c6d0ee', '#93a7e4', '#5c7ed6', INK.blue, INK.pink];
+export const DAYPART_INK = { morning: INK.orange, afternoon: INK.teal, evening: INK.pink, night: INK.blue };
+export const heatLevel =(value, cap) => value ? Math.min(5, Math.max(1, Math.ceil(value / cap * 5))) : 0;
 
 /* Charts are drawn at their real pixel width so text stays crisp. `chart()` leaves a slot; drawCharts() fills it. */
 const charts = new Map();
@@ -51,7 +55,8 @@ function gridLines({ w, H, left, right, top, bottom, max, format }) {
   }).join('');
 }
 
-export function areaChart(w, { values, label, tip, height = 250, format = axisNumber, from = '#ffb45e', to = '#f2557a', aria = 'Chart' }) {
+// A solid line over a halftone fill, with the peak marked in pink.
+export function areaChart(w, { values, label, tip, height = 250, format = axisNumber, color = INK.blue, aria = 'Chart' }) {
   const H = w < 520 ? Math.min(height, 200) : height, left = 44, right = 12, top = 16, bottom = 30, n = values.length;
   const max = niceMax(Math.max(...values, 0)), id = `g${++sequence}`;
   const x = i => n === 1 ? (left + w - right) / 2 : left + i / (n - 1) * (w - left - right);
@@ -61,33 +66,27 @@ export function areaChart(w, { values, label, tip, height = 250, format = axisNu
   const area = `${line} L${x(n - 1).toFixed(1)},${H - bottom} L${x(0).toFixed(1)},${H - bottom} Z`;
   const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((w - left - right) / 64))));
   const slot = n > 1 ? (w - left - right) / (n - 1) : w - left - right;
+  const peak = values.indexOf(Math.max(...values));
   return `<svg class="chart" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" role="img" aria-label="${escape(aria)}">
-    <defs>
-      <linearGradient id="${id}-line" x1="0" x2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient>
-      <linearGradient id="${id}-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${to}" stop-opacity=".32"/><stop offset="1" stop-color="${to}" stop-opacity="0"/></linearGradient>
-      <filter id="${id}-glow" x="-10%" y="-40%" width="120%" height="180%"><feGaussianBlur stdDeviation="6"/></filter>
-    </defs>
+    <defs><pattern id="${id}-dots" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.5" fill="${color}"/></pattern></defs>
     ${gridLines({ w, H, left, right, top, bottom, max, format })}
-    <path class="area" d="${area}" fill="url(#${id}-fill)"/>
-    <path class="line line-glow" d="${line}" stroke="url(#${id}-line)" filter="url(#${id}-glow)" pathLength="1"/>
-    <path class="line" d="${line}" stroke="url(#${id}-line)" pathLength="1"/>
-    ${n === 1 ? `<circle cx="${points[0][0]}" cy="${points[0][1]}" r="4" fill="${to}"/>` : ''}
+    <path class="area" d="${area}" fill="url(#${id}-dots)" opacity=".75"/>
+    <path class="line" d="${line}" stroke="${color}" pathLength="1"/>
+    ${values[peak] > 0 ? `<circle class="peak-dot" cx="${points[peak][0]}" cy="${points[peak][1]}" r="6"/>` : ''}
     ${values.map((v, i) => i % every === 0 ? `<text x="${x(i)}" y="${H - 9}" text-anchor="middle">${escape(label(i))}</text>` : '').join('')}
     ${values.map((v, i) => `<g class="pt" tabindex="0" data-tip="${escape(tip(i))}"><rect class="hit" x="${x(i) - slot / 2}" y="${top}" width="${slot}" height="${H - top - bottom}"/><line class="guide" x1="${x(i)}" x2="${x(i)}" y1="${top}" y2="${H - bottom}"/><circle class="dot" cx="${points[i][0]}" cy="${points[i][1]}" r="5"/></g>`).join('')}
   </svg>`;
 }
 
 export function barChart(w, { values, label, sublabel, tip, height = 220, highlight = -1, format = axisNumber, aria = 'Bar chart' }) {
-  const H = height, left = 44, right = 8, top = 16, bottom = sublabel ? 46 : 30, n = values.length, id = `g${++sequence}`;
-  const max = niceMax(Math.max(...values, 0)), slot = (w - left - right) / Math.max(n, 1), bw = Math.max(3, Math.min(56, slot * .62));
+  const H = height, left = 44, right = 8, top = 16, bottom = sublabel ? 46 : 30, n = values.length;
+  const max = niceMax(Math.max(...values, 0)), slot = (w - left - right) / Math.max(n, 1), bw = Math.max(3, Math.min(56, slot * .7));
   const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((w - left - right) / 46))));
   return `<svg class="chart bars" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" role="img" aria-label="${escape(aria)}">
-    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2557a"/><stop offset="1" stop-color="#8b5cf6" stop-opacity=".5"/></linearGradient>
-    <linearGradient id="${id}-hi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc46b"/><stop offset="1" stop-color="#ff7a5c"/></linearGradient></defs>
     ${gridLines({ w, H, left, right, top, bottom, max, format })}
     ${values.map((v, i) => {
       const bh = v / max * (H - top - bottom), bx = left + i * slot + (slot - bw) / 2;
-      return `<g class="pt bar${i === highlight ? ' hi' : ''}" tabindex="0" data-tip="${escape(tip(i))}"><rect class="hit" x="${left + i * slot}" y="${top}" width="${slot}" height="${H - top - bottom}"/><rect class="dot bar-fill" x="${bx}" y="${H - bottom - bh}" width="${bw}" height="${Math.max(bh, v ? 2 : 0)}" rx="${Math.min(7, bw / 3)}" fill="url(#${id}${i === highlight ? '-hi' : ''})"/></g>`;
+      return `<g class="pt bar${i === highlight ? ' hi' : ''}" tabindex="0" data-tip="${escape(tip(i))}"><rect class="hit" x="${left + i * slot}" y="${top}" width="${slot}" height="${H - top - bottom}"/><rect class="dot bar-fill" x="${bx}" y="${H - bottom - bh}" width="${bw}" height="${Math.max(bh, v ? 2 : 0)}" fill="${i === highlight ? INK.pink : INK.blue}"/></g>`;
     }).join('')}
     ${values.map((v, i) => i % every === 0 ? `<text class="${i === highlight ? 'strong' : ''}" x="${left + (i + .5) * slot}" y="${H - bottom + 18}" text-anchor="middle">${escape(label(i))}</text>${sublabel ? `<text class="sub" x="${left + (i + .5) * slot}" y="${H - bottom + 34}" text-anchor="middle">${escape(sublabel(i))}</text>` : ''}` : '').join('')}
   </svg>`;
@@ -151,7 +150,7 @@ export function calendarChart(w, daily, year) {
 export function clockChart(w, values) {
   const size = Math.min(w, 320), c = size / 2, inner = size * .2, outer = size * .4, max = Math.max(...values, 1);
   const p = (r, a) => `${(c + r * Math.cos(a)).toFixed(1)},${(c + r * Math.sin(a)).toFixed(1)}`;
-  const color = h => h < 5 ? '#8b5cf6' : h < 12 ? '#ffb45e' : h < 17 ? '#ff7a5c' : h < 22 ? '#f2557a' : '#b04fd6';
+  const color = h => h < 5 || h >= 22 ? DAYPART_INK.night : h < 12 ? DAYPART_INK.morning : h < 17 ? DAYPART_INK.afternoon : DAYPART_INK.evening;
   const peak = values.indexOf(Math.max(...values));
   const wedges = values.map((v, h) => {
     const a0 = h / 24 * Math.PI * 2 - Math.PI / 2 + .028, a1 = (h + 1) / 24 * Math.PI * 2 - Math.PI / 2 - .028, r = inner + 3 + (outer - inner - 3) * v / max;
