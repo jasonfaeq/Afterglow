@@ -175,8 +175,3 @@ export function coverURI(kind, item) {
   return uri;
 }
 
-// The two strongest colours of an artwork, for glows behind it.
-export function coverColors(kind, item) {
-  const seed = hash(keyOf(kind, item)), palette = PALETTES[kind === 'artist' ? (seed >>> 4) % PALETTES.length : seed % PALETTES.length];
-  return [palette[1], palette[3]];
-}

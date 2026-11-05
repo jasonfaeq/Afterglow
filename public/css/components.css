@@ -14,7 +14,6 @@
 a.art { transition: transform .25s var(--ease); }
 a.art:hover { transform: scale(1.04); }
 .art-fill { width: 100%; height: auto; aspect-ratio: 1; }
-.backdrop { display: none; }
 
 /* The #1 artist, printed as the headliner of a gig poster. */
 .poster { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; gap: 22px; min-width: 0; min-height: 440px; padding: 32px; background: var(--blue); background-image: radial-gradient(rgba(246, 245, 241, .2) 1.2px, transparent 1.5px); background-size: 7px 7px; color: var(--paper); }

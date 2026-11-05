@@ -1,14 +1,14 @@
 import { periodLabel } from '../state.mjs';
 import { escape, number, decimal, percent, hours, duration, plural, formatDate, monthLabel, hourLabel, DAY_NAMES } from '../lib/format.mjs';
 import { icon } from '../lib/icons.mjs';
-import { art, coverColors, backdrop, openAttrs, artistLink } from '../ui/components.mjs';
+import { art, openAttrs, artistLink } from '../ui/components.mjs';
 import { chart, barChart } from '../ui/charts.mjs';
 
 const close = `<button class="icon-btn close-dialog detail-close" aria-label="Close">${icon('close')}</button>`;
 export const loadingDetail = name => `${close}<div class="loading"><span class="spinner"></span>Gathering ${escape(name)}…</div>`;
 
-const hero = ({ kind, item, size = 'lg', eyebrow, title, meta }) => { const [c1, c2] = coverColors(kind, item); return `<header class="detail-hero" style="--c1:${c1};--c2:${c2}" data-backdrop-host>
-  ${backdrop(kind, item)}${art(kind, item, size)}<div class="detail-heading"><span class="eyebrow">${eyebrow}</span><h2 class="detail-title">${title}</h2><p>${meta}</p></div>${close}</header>`; };
+const hero = ({ kind, item, size = 'lg', eyebrow, title, meta }) => `<header class="detail-hero">
+  ${art(kind, item, size)}<div class="detail-heading"><span class="eyebrow">${eyebrow}</span><h2 class="detail-title">${title}</h2><p>${meta}</p></div>${close}</header>`;
 const statRow = list => `<div class="detail-stats">${list.map(([label, value]) => `<div><strong>${value}</strong><span>${label}</span></div>`).join('')}</div>`;
 const monthly = (timeline, title = 'Over time') => timeline.length > 1 ? `<h3 class="detail-section">${title}</h3>${chart(w => barChart(w, {
   values: timeline.map(m => hours(m.ms)), label: i => monthLabel(timeline[i].key), tip: i => `${monthLabel(timeline[i].key, true)}\n${duration(timeline[i].ms)}`, height: 180, format: v => decimal(v), aria: 'Listening time per month'

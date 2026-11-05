@@ -35,9 +35,6 @@ export function installArtwork({ client = new ArtworkClient() } = {}) {
     image.addEventListener('load', () => {
       if (!enabled || !tile.contains(image)) return;
       tile.classList.add('has-artwork');
-      // Big headers glow with the real cover once it's here.
-      const glow = tile.closest('[data-backdrop-host]')?.querySelector(':scope > .backdrop');
-      if (glow) glow.src = art.image;
     }, { once: true });
     image.addEventListener('error', () => { image.remove(); tile.classList.remove('has-artwork'); }, { once: true });
     tile.querySelector('img.art-real')?.remove(); tile.append(image); image.src = art.image;
