@@ -25,7 +25,7 @@
 .demo-banner p a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .demo-banner p a:hover { text-decoration-color: var(--pink); }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
-.page-head h1 { margin-top: 14px; font: 800 clamp(42px, 6vw, 78px)/.94 var(--display); font-stretch: 85%; letter-spacing: -.038em; }
+.page-head h1 { margin-top: 14px; font: 800 clamp(42px, 6vw, 78px)/.94 var(--display); font-stretch: 85%; letter-spacing: -.028em; }
 .page-head p { max-width: 660px; margin-top: 16px; color: var(--ink-2); font-size: 16px; }
 .page-head p strong { color: var(--ink); }
 .page-filters { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }

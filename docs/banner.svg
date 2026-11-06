@@ -1,41 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
   <title id="title">Afterglow</title>
-  <desc id="desc">Your listening, in perspective. A sunset gradient, a striped sun, and a flowing listening timeline on a dark violet background.</desc>
+  <desc id="desc">Your listening, in perspective. A riso-style poster: a pink sun printed over a blue halftone block, with a month-by-month listening chart, on warm paper.</desc>
   <defs>
-    <linearGradient id="background" x2="1" y2="1">
-      <stop stop-color="#110e1c"/><stop offset="1" stop-color="#211329"/>
-    </linearGradient>
-    <linearGradient id="sunset" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#ffc66b"/><stop offset=".48" stop-color="#f47787"/><stop offset="1" stop-color="#9061ef"/>
-    </linearGradient>
-    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#f47787" stop-opacity=".22"/><stop offset="1" stop-color="#f47787" stop-opacity="0"/>
-    </linearGradient>
-    <radialGradient id="halo">
-      <stop stop-color="#f47787" stop-opacity=".19"/><stop offset="1" stop-color="#f47787" stop-opacity="0"/>
-    </radialGradient>
-    <clipPath id="frame"><rect width="1280" height="360" rx="24"/></clipPath>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.3" fill="#f6f5f1" fill-opacity=".22"/></pattern>
+    <clipPath id="frame"><rect width="1280" height="360" rx="8"/></clipPath>
+    <clipPath id="block"><rect x="760" y="0" width="520" height="360"/></clipPath>
   </defs>
   <g clip-path="url(#frame)">
-    <rect width="1280" height="360" fill="url(#background)"/>
-    <ellipse cx="1060" cy="160" rx="350" ry="320" fill="url(#halo)"/>
-    <g stroke="#fff" stroke-opacity=".035">
-      <path d="M0 260H1280M0 300H1280M0 340H1280"/>
-      <path d="M720 0V360M840 0V360M960 0V360M1080 0V360M1200 0V360"/>
+    <rect width="1280" height="360" fill="#f6f5f1"/>
+    <g clip-path="url(#block)">
+      <rect x="760" width="520" height="360" fill="#2f55c8"/>
+      <rect x="760" width="520" height="360" fill="url(#dots)"/>
+      <circle cx="1090" cy="96" r="150" fill="#ff48a6" style="mix-blend-mode:multiply"/>
+      <rect x="794.6" y="201.3" width="8.6" height="126.7" fill="#f6f5f1" opacity=".9"/><rect x="808.4" y="228.2" width="8.6" height="99.8" fill="#f6f5f1" opacity=".9"/><rect x="822.3" y="210.0" width="8.6" height="118.0" fill="#f6f5f1" opacity=".9"/><rect x="836.1" y="219.2" width="8.6" height="108.8" fill="#f6f5f1" opacity=".9"/><rect x="849.9" y="263.2" width="8.6" height="64.8" fill="#f6f5f1" opacity=".9"/><rect x="863.7" y="275.1" width="8.6" height="52.9" fill="#f6f5f1" opacity=".9"/><rect x="877.5" y="223.2" width="8.6" height="104.8" fill="#f6f5f1" opacity=".9"/><rect x="891.4" y="219.8" width="8.6" height="108.2" fill="#f6f5f1" opacity=".9"/><rect x="905.2" y="218.5" width="8.6" height="109.5" fill="#f6f5f1" opacity=".9"/><rect x="919.0" y="192.1" width="8.6" height="135.9" fill="#f6f5f1" opacity=".9"/><rect x="932.8" y="246.9" width="8.6" height="81.1" fill="#f6f5f1" opacity=".9"/><rect x="946.6" y="266.9" width="8.6" height="61.1" fill="#f6f5f1" opacity=".9"/><rect x="960.4" y="241.1" width="8.6" height="86.9" fill="#f6f5f1" opacity=".9"/><rect x="974.3" y="241.9" width="8.6" height="86.1" fill="#f6f5f1" opacity=".9"/><rect x="988.1" y="231.4" width="8.6" height="96.6" fill="#f6f5f1" opacity=".9"/><rect x="1001.9" y="214.0" width="8.6" height="114.0" fill="#f6f5f1" opacity=".9"/><rect x="1015.7" y="205.8" width="8.6" height="122.2" fill="#f6f5f1" opacity=".9"/><rect x="1029.5" y="247.7" width="8.6" height="80.3" fill="#f6f5f1" opacity=".9"/><rect x="1043.4" y="265.6" width="8.6" height="62.4" fill="#f6f5f1" opacity=".9"/><rect x="1057.2" y="241.1" width="8.6" height="86.9" fill="#f6f5f1" opacity=".9"/><rect x="1071.0" y="264.0" width="8.6" height="64.0" fill="#f6f5f1" opacity=".9"/><rect x="1084.8" y="216.9" width="8.6" height="111.1" fill="#f6f5f1" opacity=".9"/><rect x="1098.6" y="175.5" width="8.6" height="152.5" fill="#ff48a6"/><rect x="1112.4" y="207.1" width="8.6" height="120.9" fill="#f6f5f1" opacity=".9"/><rect x="1126.3" y="249.5" width="8.6" height="78.5" fill="#f6f5f1" opacity=".9"/><rect x="1140.1" y="257.4" width="8.6" height="70.6" fill="#f6f5f1" opacity=".9"/><rect x="1153.9" y="241.4" width="8.6" height="86.6" fill="#f6f5f1" opacity=".9"/><rect x="1167.7" y="267.4" width="8.6" height="60.6" fill="#f6f5f1" opacity=".9"/><rect x="1181.5" y="215.8" width="8.6" height="112.2" fill="#f6f5f1" opacity=".9"/><rect x="1195.4" y="198.7" width="8.6" height="129.3" fill="#f6f5f1" opacity=".9"/><rect x="1209.2" y="235.3" width="8.6" height="92.7" fill="#f6f5f1" opacity=".9"/><rect x="1223.0" y="252.2" width="8.6" height="75.8" fill="#f6f5f1" opacity=".9"/><rect x="1236.8" y="244.8" width="8.6" height="83.2" fill="#f6f5f1" opacity=".9"/>
+      <rect x="760" y="328" width="520" height="32" fill="#2f55c8"/>
+      <rect x="792" y="327" width="456" height="3" fill="#f6f5f1"/>
+      <text x="792" y="352" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#f6f5f1">EVERY MONTH, JAN 2024 – SEP 2026</text>
     </g>
-    <path d="M650 310 685 290 720 302 755 260 790 274 825 238 860 256 895 211 930 225 965 185 1000 203 1035 164 1070 191 1105 146 1140 161 1175 121 1210 141 1245 109 1280 125V360H650Z" fill="url(#fade)"/>
-    <path d="M650 310 685 290 720 302 755 260 790 274 825 238 860 256 895 211 930 225 965 185 1000 203 1035 164 1070 191 1105 146 1140 161 1175 121 1210 141 1245 109 1280 125" fill="none" stroke="url(#sunset)" stroke-width="2.5" stroke-linejoin="round" opacity=".55"/>
-    <rect x="64" y="50" width="50" height="50" rx="14" fill="#1e172b" stroke="#463045"/>
-    <circle cx="89" cy="78" r="15" fill="url(#sunset)"/>
-    <path d="M69 81H109M71 87H107M69 93H109" stroke="#1e172b" stroke-width="3"/>
-    <text x="130" y="81" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="3" fill="#e4b18b">YOUR PERSONAL LISTENING SPACE</text>
-    <text x="59" y="203" font-family="Georgia, serif" font-size="104" letter-spacing="-5" fill="#faf4ef">afterglow<tspan fill="#ffbc6d">.</tspan></text>
-    <text x="65" y="256" font-family="Georgia, serif" font-size="30" font-style="italic" fill="url(#sunset)">Your listening, in perspective.</text>
-    <text x="66" y="310" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#b9aebe" letter-spacing=".5">SPOTIFY HISTORY</text>
-    <circle cx="226" cy="305" r="2" fill="#e8aa80"/>
-    <text x="244" y="310" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#b9aebe" letter-spacing=".5">LOCAL FIRST</text>
-    <circle cx="356" cy="305" r="2" fill="#e8aa80"/>
-    <text x="374" y="310" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#b9aebe" letter-spacing=".5">JUST YOUR MUSIC</text>
-    <rect x=".5" y=".5" width="1279" height="359" rx="24" fill="none" stroke="#493047"/>
+    <rect x="64" y="50" width="50" height="50" rx="10" fill="#2f55c8"/>
+    <circle cx="89" cy="80" r="16" fill="#ff48a6"/>
+    <path d="M64 82H114M64 88H114M64 94H114" stroke="#2f55c8" stroke-width="3"/>
+    <rect x="64" y="96" width="50" height="4" fill="#2f55c8"/>
+    <text x="132" y="81" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="3" fill="#2f55c8">YOUR PERSONAL LISTENING SPACE</text>
+    <text x="60" y="214" font-family="Impact, 'Arial Narrow Bold', 'Helvetica Neue Condensed Black', 'Arial Black', sans-serif" font-size="120" fill="#1b1b1f">afterglow<tspan fill="#ff48a6">.</tspan></text>
+    <text x="64" y="262" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="600" fill="#2f55c8">Your listening, in perspective.</text>
+    <rect x="64" y="288" width="640" height="3" fill="#1b1b1f"/>
+    <text x="64" y="318" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#1b1b1f">SPOTIFY HISTORY  ·  LOCAL FIRST  ·  JUST YOUR MUSIC</text>
   </g>
+  <rect x="1.5" y="1.5" width="1277" height="357" rx="7" fill="none" stroke="#1b1b1f" stroke-width="3"/>
 </svg>

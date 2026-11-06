@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="afterglow. Your listening, in perspective." width="100%">
+  <img src="docs/banner.svg" alt="afterglow. Your listening, in perspective, printed like a riso gig poster." width="100%">
 </p>
 
 <p align="center">
@@ -18,22 +18,22 @@
   <a href="#your-library-stays-yours">Privacy</a>
 </p>
 
-[![The afterglow homepage, with a striped sun, a stack of album covers and a now-playing card](docs/screenshots/home.jpg)](docs/screenshots/home.jpg)
+[![The afterglow homepage: a pink sun printed over a blue halftone block, a fanned stack of album covers and a now-playing card](docs/screenshots/home.jpg)](docs/screenshots/home.jpg)
 
 ## Your music has a story
 
-The artist you always come back to. The song that took over a whole month. The late-night sessions that quietly became a habit. afterglow brings those patterns into view with warm gradients, detailed charts and a calm space to explore your history.
+The artist you always come back to. The song that took over a whole month. The late-night sessions that quietly became a habit. afterglow brings those patterns into view like a riso-printed gig poster: two inks on warm paper, big type, and charts you can actually read. Your #1 artist headlines, and everyone else is on the bill.
 
 Open it and you land on a welcome page. **Take the demo for a spin** to explore a made-up listener's last three years of music, or **bring your own history** and it becomes yours.
 
 | Explore | What you'll find |
 | --- | --- |
-| **The big picture** | Your #1 artist in the spotlight, hours, plays, artists and tracks, and a month-by-month listening story. |
+| **The big picture** | Your #1 artist headlining a poster, the next five on the bill (each name sized by listening hours), your totals and a month-by-month listening story. |
 | **Artists & albums** | Your podium, who's rising and who's fading, how concentrated your taste is, new discoveries and your top albums. |
 | **Every track** | Search and sort every song you've ever played, with first listens and play counts. Export it all as CSV. |
 | **Listening habits** | A year of days, a 24-hour listening clock, the shape of your week, sessions, skips, shuffle and offline plays. |
 | **Year by year** | Hours, discoveries and days with music for each year, plus every year's favourite artist and track. |
-| **Records & moments** | Your biggest day, longest streak, longest session, the song you couldn't stop replaying, and what you played on this day in earlier years. |
+| **Records & moments** | Your biggest day, longest streak, longest session and the song you couldn't stop replaying, torn off like ticket stubs, plus what you played on this day in earlier years. |
 
 Click any artist, album or track for its own story. Press <kbd>Ctrl</kbd> <kbd>K</kbd> to find anything in your library.
 
@@ -50,36 +50,36 @@ Click any artist, album or track for its own story. Press <kbd>Ctrl</kbd> <kbd>K
 <table>
   <tr>
     <td width="50%">
-      <a href="docs/screenshots/overview.jpg"><img src="docs/screenshots/overview.jpg" alt="Overview with the top artist spotlight, listening totals and the monthly listening story" width="100%"></a>
+      <a href="docs/screenshots/overview.jpg"><img src="docs/screenshots/overview.jpg" alt="Overview with the top artist headlining a blue poster, a lineup of the next five artists sized by hours, and listening totals" width="100%"></a>
       <br><strong>The big picture</strong><br>
-      <sub>Your favourite artist lit by their own colours, and a month-by-month story.</sub>
+      <sub>Your favourite artist headlines, and the rest of the bill is sized by hours.</sub>
     </td>
     <td width="50%">
-      <a href="docs/screenshots/artists.jpg"><img src="docs/screenshots/artists.jpg" alt="Artist podium and a stacked chart of top artists over time" width="100%"></a>
+      <a href="docs/screenshots/artists.jpg"><img src="docs/screenshots/artists.jpg" alt="Artist podium with the #1 printed in blue, above a stacked chart of top artists over time" width="100%"></a>
       <br><strong>The voices behind it all</strong><br>
       <sub>Your podium, and how each favourite's place changes over time.</sub>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <a href="docs/screenshots/albums.jpg"><img src="docs/screenshots/albums.jpg" alt="A grid of top albums with generated cover art" width="100%"></a>
+      <a href="docs/screenshots/albums.jpg"><img src="docs/screenshots/albums.jpg" alt="A grid of top albums with generated cover art in riso inks" width="100%"></a>
       <br><strong>Made for the whole album</strong><br>
-      <sub>Every album gets a cover, even in the demo.</sub>
+      <sub>Every album gets a printed sleeve, even in the demo.</sub>
     </td>
     <td width="50%">
-      <a href="docs/screenshots/habits.jpg"><img src="docs/screenshots/habits.jpg" alt="Daily listening calendar, 24-hour clock and week chart" width="100%"></a>
+      <a href="docs/screenshots/habits.jpg"><img src="docs/screenshots/habits.jpg" alt="Daily listening calendar in blue and pink, a 24-hour clock and a week chart" width="100%"></a>
       <br><strong>A rhythm to your days</strong><br>
       <sub>The hours, days and routines that have a soundtrack.</sub>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <a href="docs/screenshots/artist-detail.jpg"><img src="docs/screenshots/artist-detail.jpg" alt="Artist detail with listening totals, a monthly chart, top tracks and listening hours" width="100%"></a>
+      <a href="docs/screenshots/artist-detail.jpg"><img src="docs/screenshots/artist-detail.jpg" alt="Artist page with a poster-style header, listening totals, a monthly chart and top tracks" width="100%"></a>
       <br><strong>A closer look at a favourite</strong><br>
       <sub>Every artist, album and track opens into its own story.</sub>
     </td>
     <td width="50%">
-      <a href="docs/screenshots/years.jpg"><img src="docs/screenshots/years.jpg" alt="Hours per year with the biggest year highlighted" width="100%"></a>
+      <a href="docs/screenshots/years.jpg"><img src="docs/screenshots/years.jpg" alt="Hours per year with the biggest year printed in pink" width="100%"></a>
       <br><strong>Every year sounds different</strong><br>
       <sub>How your listening has grown and shifted, year by year.</sub>
     </td>
@@ -149,13 +149,13 @@ Larger exports can be extracted and imported as JSON in batches. Use a modern br
 
 ## Cover art
 
-The sample library is entirely made up, so every album gets its own **generated sleeve**: sunsets, rings, Bauhaus grids, mountain ridges, big italic letters. Artists get soft generated portraits. Your imported library uses the same art by default, so it never looks empty.
+The sample library is entirely made up, so every album gets its own **generated sleeve**: sunsets, rings, Bauhaus grids, mountain ridges, big italic letters, all printed in the same handful of riso inks. Artists get soft generated portraits. In big headers, artwork prints in black over the blue, so a real photo becomes a duotone. Your imported library uses the same art by default, so it never looks empty.
 
 If you run afterglow with Spotify app credentials on the server (locally with `.env`, or on Vercel as environment variables), imported libraries can also show **real album covers and artist photos**. Nobody signs in to Spotify. Only names and track IDs are looked up, never your listening history, and real covers link back to Spotify. See the [cover art setup guide](docs/ARTWORK_SETUP.md). Settings → **Cover art & artist photos** turns lookups off at any time.
 
 ## Your library stays yours
 
-**Your export is read on your device.** A background worker parses the files and computes every chart, and your library is saved in your browser's IndexedDB storage. There's no account, no backend database, and no third-party fonts. The hosted site uses Vercel Web Analytics for anonymous, cookie-free page-view counts; it never sees your history, and a local copy doesn't load it at all.
+**Your export is read on your device.** A background worker parses the files and computes every chart, and your library is saved in your browser's IndexedDB storage. There's no account, no backend database, and no third-party fonts: the two typefaces are served from `public/fonts`. The hosted site uses Vercel Web Analytics for anonymous, cookie-free page-view counts; it never sees your history, and a local copy doesn't load it at all.
 
 | Kept for your dashboard | Dropped during import |
 | --- | --- |
@@ -209,7 +209,8 @@ Spotify JSON / ZIP → worker → normalized plays → IndexedDB
 | `public/js/dialogs/` | Artist, album and track details, the import welcome, and search. |
 | `public/js/ui/` · `public/js/lib/` | Charts, tooltips, shared components, formatting, icons and the generated cover art. |
 | `public/js/artwork/` | Lazy, paced cover lookups in the browser and the rules shared with the server. |
-| `public/css/` | Design tokens, the app shell, components, dialogs and the homepage. |
+| `public/css/` | Design tokens (paper, blue and pink inks), the app shell, components, dialogs and the homepage. |
+| `public/fonts/` | Bricolage Grotesque and Instrument Sans, self-hosted with their open font licences. |
 
 Run the tests with:
 
