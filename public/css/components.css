@@ -19,7 +19,7 @@ a.art:hover { transform: scale(1.04); }
 .poster { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; gap: 22px; min-width: 0; min-height: 440px; padding: 32px; background: var(--blue); background-image: radial-gradient(rgba(246, 245, 241, .2) 1.2px, transparent 1.5px); background-size: 7px 7px; color: var(--paper); }
 .poster-sun { position: absolute; top: -90px; right: -90px; z-index: -1; width: 360px; aspect-ratio: 1; border-radius: 50%; background: var(--pink); mix-blend-mode: multiply; }
 /* Artwork prints in black over the blue, so a photo turns into a duotone. */
-.poster .art { position: absolute; top: 34px; right: 34px; z-index: -1; --size: 168px; filter: grayscale(1) contrast(1.25) brightness(1.05); mix-blend-mode: multiply; }
+.poster .art { position: absolute; top: 34px; right: 34px; z-index: -1; --size: 168px; filter: grayscale(1) contrast(1.5) brightness(1.3); mix-blend-mode: multiply; }
 .poster .art::after { box-shadow: none; }
 .poster-kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .poster-name { font: 800 clamp(56px, 7.4vw, 112px)/.84 var(--display); font-stretch: 75%; letter-spacing: -.035em; overflow-wrap: anywhere; }
@@ -64,7 +64,7 @@ a.art:hover { transform: scale(1.04); }
 .rank-sub { overflow: hidden; color: var(--ink-3); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .rank-value { font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
 span.bar { position: absolute; inset: 0; z-index: -1; display: block; overflow: hidden; }
-span.bar > span { display: block; height: 100%; background: var(--pink-soft); }
+span.bar > span { display: block; height: 100%; background: rgba(255, 72, 166, .22); }
 
 .rank-list.two-col { display: block; columns: 2; column-gap: 40px; }
 .rank-list.two-col .rank-row { break-inside: avoid; }
@@ -77,7 +77,7 @@ span.bar > span { display: block; height: 100%; background: var(--pink-soft); }
 .podium-card .art { margin-bottom: 10px; }
 .place-1 { order: 2; padding-top: 36px; border-color: var(--blue); background: var(--blue); background-image: radial-gradient(rgba(246, 245, 241, .2) 1.2px, transparent 1.5px); background-size: 7px 7px; color: var(--paper); box-shadow: 6px 6px 0 var(--pink); }
 .place-1::before { content: ''; position: absolute; top: -70px; right: -70px; z-index: -1; width: 220px; aspect-ratio: 1; border-radius: 50%; background: var(--pink); mix-blend-mode: multiply; }
-.place-1 .art { filter: grayscale(1) contrast(1.25); mix-blend-mode: multiply; }
+.place-1 .art { filter: grayscale(1) contrast(1.5) brightness(1.3); mix-blend-mode: multiply; }
 .place-2 { order: 1; }
 .place-3 { order: 3; }
 .podium-rank { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border: 2px solid currentColor; font: 800 13px var(--display); }
@@ -287,7 +287,7 @@ span.bar > span { display: block; height: 100%; background: var(--pink-soft); }
 .chart-foot strong { color: var(--ink); font-weight: 650; }
 
 @media (max-width: 1100px) {
-  .grid-hero > * { grid-column: span 12; }
+  .grid-hero > * { grid-column: 1 / -1; }
   .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .donut-wrap { flex-direction: column; align-items: stretch; }
   .donut-holder { align-self: center; }
